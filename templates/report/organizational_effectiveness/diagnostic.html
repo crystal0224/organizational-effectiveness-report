@@ -1,0 +1,658 @@
+<!-- templates/report/organizational_effectiveness/diagnostic.html -->
+{# IPO 영역별 색상 톤앤매너 개선 및 레이아웃 최적화 #}
+
+<div class="report-section bg-white px-10 py-8">
+
+  <!-- 헤더 -->
+  <header class="flex items-center justify-between border-b border-slate-200 pb-4 mb-6">
+    <div>
+      <p class="text-xs text-slate-400">Diagnostic Detail</p>
+      <h1 class="text-base font-semibold text-slate-900">{{ report.org_name }}</h1>
+    </div>
+    <p class="text-xs text-slate-400">
+      {{ category["title"] if "title" in category else category["name"] }}
+    </p>
+  </header>
+
+  <!-- IPO 영역별 설명 카드 -->
+  {% set category_name = (category["title"] if "title" in category else category["name"]).lower() %}
+  {% if "input" in category_name %}
+    <!-- Input 영역 통합 설명 + 점수 -->
+    <div class="rounded-lg border border-blue-100 bg-blue-50/30 px-4 py-4 mb-6 flex gap-6 keep-together">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+            <span class="text-blue-600 text-sm font-bold">INPUT</span>
+          </div>
+          <h3 class="text-sm font-semibold text-blue-700 ml-3">조직 효과성의 기반 요소</h3>
+        </div>
+        <p class="text-xs text-slate-700 leading-relaxed mb-2">
+          <strong>조직 관점</strong>에서는 명확한 전략 방향과 VWBE 실천 환경을 구축합니다.
+          목표와 우선순위가 분명하고, 구성원이 자율적으로 일할 수 있는 환경과 일-삶의 균형을 지원합니다.
+        </p>
+        <p class="text-xs text-slate-700 leading-relaxed mb-2">
+          <strong>구성원 관점</strong>에서는 개인의 역할 인식, 역량 수준, 동기와 윤리의식 등
+          조직 성과 창출에 필요한 개인적 준비도를 점검합니다.
+        </p>
+        <p class="text-xs text-slate-700 leading-relaxed">
+          <strong>환경 관점</strong>에서는 경영층의 지원, 필요한 자원 확보, 공정한 평가와 성장 기회 등
+          조직이 제공해야 할 제도적 뒷받침을 평가합니다.
+        </p>
+      </div>
+      <div class="flex flex-col items-center justify-center min-w-[120px]">
+        <p class="text-xs text-slate-400 mb-2">영역 평균</p>
+        <div class="w-16 h-16 rounded-xl bg-blue-100 flex items-center justify-center">
+          <p class="text-2xl font-bold text-blue-700">
+            {% if category["average"] is not none %}
+              {{ "%.1f"|format(category["average"]) }}
+            {% else %}-{% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input 영역 세로선차트 -->
+    <div class="mb-6 keep-together">
+      <div class="bg-white rounded-lg border border-slate-100 p-4">
+        <div class="h-[280px] relative">
+          <canvas id="inputVerticalChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  {% elif "process" in category_name %}
+    <!-- Process 영역 통합 설명 + 점수 -->
+    <div class="rounded-lg border border-emerald-100 bg-emerald-50/30 px-4 py-4 mb-6 flex gap-6 keep-together">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+            <span class="text-emerald-600 text-sm font-bold">PROCESS</span>
+          </div>
+          <h3 class="text-sm font-semibold text-emerald-700 ml-3">SKMS 실천을 통한 가치 창조</h3>
+        </div>
+        <p class="text-xs text-slate-700 leading-relaxed mb-2">
+          투입된 자원과 역량이 실제 성과로 전환되는 핵심 실행 과정입니다.
+          <strong>도전적 목표</strong>를 추구하며 SUPEX를 지향하고, 기존 틀을 깨는 유연한 사고로 접근합니다.
+        </p>
+        <p class="text-xs text-slate-700 leading-relaxed mb-2">
+          <strong>과감한 실행</strong>을 통해 문제를 적극적으로 해결하고 신속하게 상황을 파악합니다.
+          <strong>적극적 소통</strong>으로 의사결정에 참여하고 자유롭게 의견을 교환합니다.
+        </p>
+        <p class="text-xs text-slate-700 leading-relaxed">
+          <strong>팀워크 발휘</strong>로 상호 협력하고 정보를 공유하며, <strong>외부 협업</strong>을 통해
+          조직 간 협력적 네트워크를 구축하여 시너지를 창출합니다.
+        </p>
+      </div>
+      <div class="flex flex-col items-center justify-center min-w-[120px]">
+        <p class="text-xs text-slate-400 mb-2">영역 평균</p>
+        <div class="w-16 h-16 rounded-xl bg-emerald-100 flex items-center justify-center">
+          <p class="text-2xl font-bold text-emerald-700">
+            {% if category["average"] is not none %}
+              {{ "%.1f"|format(category["average"]) }}
+            {% else %}-{% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Process 영역 세로선차트 -->
+    <div class="mb-6 keep-together">
+      <div class="bg-white rounded-lg border border-slate-100 p-4">
+        <div class="h-[280px] relative">
+          <canvas id="processVerticalChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  {% elif "output" in category_name %}
+    <!-- Output 영역 통합 설명 + 점수 -->
+    <div class="rounded-lg border border-orange-100 bg-orange-50/30 px-4 py-4 mb-6 flex gap-6 keep-together">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+            <span class="text-orange-600 text-sm font-bold">OUTPUT</span>
+          </div>
+          <h3 class="text-sm font-semibold text-orange-700 ml-3">지속가능한 성과와 구성원 행복</h3>
+        </div>
+        <p class="text-xs text-slate-700 leading-relaxed mb-2">
+          조직의 궁극적 목적인 <strong>조직 성과</strong>와 <strong>구성원 행복</strong>을 동시에 달성하는 것을 목표로 합니다.
+        </p>
+        <p class="text-xs text-slate-700 leading-relaxed mb-2">
+          <strong>조직 성과</strong>는 목표 달성, 적시성, 혁신성, 지속가능성 등을 통해 측정되며,
+          단기적 성과와 장기적 경쟁력을 균형있게 추구합니다.
+        </p>
+        <p class="text-xs text-slate-700 leading-relaxed">
+          <strong>구성원 행복</strong>은 긍정적 정서, 일의 가치 인식, 성취감, 개인 성장, 미래에 대한 기대 등을 포함하여
+          구성원이 조직에서 의미있는 경험을 하고 있는지를 확인합니다.
+        </p>
+      </div>
+      <div class="flex flex-col items-center justify-center min-w-[120px]">
+        <p class="text-xs text-slate-400 mb-2">영역 평균</p>
+        <div class="w-16 h-16 rounded-xl bg-orange-100 flex items-center justify-center">
+          <p class="text-2xl font-bold text-orange-700">
+            {% if category["average"] is not none %}
+              {{ "%.1f"|format(category["average"]) }}
+            {% else %}-{% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Output 영역 세로선차트 -->
+    <div class="mb-6 keep-together">
+      <div class="bg-white rounded-lg border border-slate-100 p-4">
+        <div class="h-[280px] relative">
+          <canvas id="outputVerticalChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  {% endif %}
+
+  <!-- IPO별 색상 매핑 -->
+  {% set category_name = (category["title"] if "title" in category else category["name"]).lower() %}
+  {% if "input" in category_name %}
+    {% set theme_bg = "bg-blue-50" %}
+    {% set theme_border = "border-blue-100" %}
+    {% set theme_accent = "text-blue-700" %}
+    {% set theme_score_bg = "bg-blue-100" %}
+  {% elif "process" in category_name %}
+    {% set theme_bg = "bg-emerald-50" %}
+    {% set theme_border = "border-emerald-100" %}
+    {% set theme_accent = "text-emerald-700" %}
+    {% set theme_score_bg = "bg-emerald-100" %}
+  {% elif "output" in category_name %}
+    {% set theme_bg = "bg-orange-50" %}
+    {% set theme_border = "border-orange-100" %}
+    {% set theme_accent = "text-orange-700" %}
+    {% set theme_score_bg = "bg-orange-100" %}
+  {% else %}
+    {% set theme_bg = "bg-slate-50" %}
+    {% set theme_border = "border-slate-100" %}
+    {% set theme_accent = "text-slate-700" %}
+    {% set theme_score_bg = "bg-slate-100" %}
+  {% endif %}
+
+  <!-- 차트와 진단 항목 사이 구분 -->
+  <div style="margin-top: 2rem;"></div>
+
+  {# 소분류별로 그룹핑된 문항들 표시 #}
+  {% set subcategories = category["subcategories"] if "subcategories" in category else [] %}
+
+  {% if subcategories %}
+    {# 소분류별로 섹션을 나누어 표시 #}
+    {% for subcat in subcategories %}
+      <section class="mb-8 keep-together" style="margin-bottom: 1.5rem;">
+        <!-- 소분류 헤더 -->
+        <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200">
+          <div>
+            <h3 class="text-sm font-semibold {{ theme_accent }}">{{ subcat["name"] }}</h3>
+            <p class="text-xs text-slate-500 mt-1">{{ subcat["item_count"] }}개 문항</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-slate-400">평균 점수</p>
+            <p class="text-lg font-bold {{ theme_accent }}">
+              {% if subcat["average"] is not none %}
+                {{ "%.1f"|format(subcat["average"]) }}
+              {% else %}-{% endif %}
+            </p>
+          </div>
+        </div>
+
+        <!-- 소분류 내 문항들을 2열로 배치 -->
+        <div class="grid grid-cols-3 gap-1">
+          {% for item in subcat["items"] %}
+            <article class="rounded-lg border border-slate-100 bg-white shadow-sm px-3 py-3 item-card" style="width: 100%;">
+              <!-- 문항과 점수 -->
+              <div class="flex justify-between gap-3 mb-2">
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs text-slate-900 leading-relaxed line-clamp-2">
+                    {{ item["question"] }}
+                  </p>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                  <div class="text-right">
+                    <p class="text-[8px] text-slate-400 mb-1">점수</p>
+                    <p class="text-sm font-semibold {{ theme_accent }}">
+                      {% if item["average"] is not none %}
+                        {{ "%.1f"|format(item["average"]) }}
+                      {% else %}-{% endif %}
+                    </p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-[8px] text-slate-400 mb-1">BM</p>
+                    <p class="text-xs text-slate-600">
+                      {% if item["benchmark"] is not none %}
+                        {{ "%.1f"|format(item["benchmark"]) }}
+                      {% else %}-{% endif %}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {# 응답 분포 요약 (간소화) #}
+              {% if item["dist_agg"] is defined %}
+                <div class="flex gap-2 text-[10px] text-slate-400 mb-1">
+                  <span class="inline-flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-300 inline-block"></span>
+                    부정 {{ "%.0f"|format(item["dist_agg"]["neg_pct"]) }}%
+                  </span>
+                  <span class="inline-flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300 inline-block"></span>
+                    중립 {{ "%.0f"|format(item["dist_agg"]["mid_pct"]) }}%
+                  </span>
+                  <span class="inline-flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-sky-400 inline-block"></span>
+                    긍정 {{ "%.0f"|format(item["dist_agg"]["pos_pct"]) }}%
+                  </span>
+                </div>
+              {% endif %}
+
+              {# 응답 분포 바 (축소형) #}
+              {% set r = item["responses"] if item["responses"] is defined else {} %}
+              {% set v1 = r.get("veryLow", 0) %}
+              {% set v2 = r.get("low", 0) %}
+              {% set v3 = r.get("medium", 0) %}
+              {% set v4 = r.get("high", 0) %}
+              {% set v5 = r.get("veryHigh", 0) %}
+              {% set total = v1 + v2 + v3 + v4 + v5 %}
+              {% if total == 0 %}
+                {% set total = 1 %}
+              {% endif %}
+
+              <div class="h-1 rounded-full bg-slate-100 overflow-hidden flex">
+                <div class="bg-rose-300" style="width: {{ (v1 / total * 100) | round(1) }}%"></div>
+                <div class="bg-rose-200" style="width: {{ (v2 / total * 100) | round(1) }}%"></div>
+                <div class="bg-slate-300" style="width: {{ (v3 / total * 100) | round(1) }}%"></div>
+                <div class="bg-sky-300" style="width: {{ (v4 / total * 100) | round(1) }}%"></div>
+                <div class="bg-sky-500" style="width: {{ (v5 / total * 100) | round(1) }}%"></div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      {# 소분류 간 페이지 분할 #}
+      {% if not loop.last %}
+        <div class="h-4"></div>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    {# 기존 평면 방식 (호환성) #}
+    {% set item_list = category["items"] if "items" in category else [] %}
+    <div class="grid grid-cols-3 gap-1">
+      {% for item in item_list %}
+        <article class="rounded-xl border border-slate-100 bg-white shadow-sm px-4 py-4 item-card" style="width: 100%;">
+          <!-- 기존 코드와 동일 -->
+          <div class="flex justify-between gap-4 mb-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-slate-900 leading-relaxed line-clamp-3">
+                {{ item["question"] }}
+              </p>
+            </div>
+            <div class="flex gap-3 shrink-0">
+              <div class="text-right">
+                <p class="text-[9px] text-slate-400 mb-1">점수</p>
+                <p class="text-lg font-semibold {{ theme_accent }}">
+                  {% if item["average"] is not none %}
+                    {{ "%.1f"|format(item["average"]) }}
+                  {% else %}-{% endif %}
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="text-[9px] text-slate-400 mb-1">BM</p>
+                <p class="text-sm text-slate-600">
+                  {% if item["benchmark"] is not none %}
+                    {{ "%.1f"|format(item["benchmark"]) }}
+                  {% else %}-{% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {# 응답 분포 요약 (간소화) #}
+          {% if item["dist_agg"] is defined %}
+            <div class="flex gap-3 text-[11px] text-slate-400 mb-2">
+              <span class="inline-flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-rose-300 inline-block"></span>
+                부정 {{ "%.0f"|format(item["dist_agg"]["neg_pct"]) }}%
+              </span>
+              <span class="inline-flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-slate-300 inline-block"></span>
+                중립 {{ "%.0f"|format(item["dist_agg"]["mid_pct"]) }}%
+              </span>
+              <span class="inline-flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-sky-400 inline-block"></span>
+                긍정 {{ "%.0f"|format(item["dist_agg"]["pos_pct"]) }}%
+              </span>
+            </div>
+          {% endif %}
+
+          {# 응답 분포 바 (축소형) #}
+          {% set r = item["responses"] if item["responses"] is defined else {} %}
+          {% set v1 = r.get("veryLow", 0) %}
+          {% set v2 = r.get("low", 0) %}
+          {% set v3 = r.get("medium", 0) %}
+          {% set v4 = r.get("high", 0) %}
+          {% set v5 = r.get("veryHigh", 0) %}
+          {% set total = v1 + v2 + v3 + v4 + v5 %}
+          {% if total == 0 %}
+            {% set total = 1 %}
+          {% endif %}
+
+          <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden flex">
+            <div class="bg-rose-300" style="width: {{ (v1 / total * 100) | round(1) }}%"></div>
+            <div class="bg-rose-200" style="width: {{ (v2 / total * 100) | round(1) }}%"></div>
+            <div class="bg-slate-300" style="width: {{ (v3 / total * 100) | round(1) }}%"></div>
+            <div class="bg-sky-300" style="width: {{ (v4 / total * 100) | round(1) }}%"></div>
+            <div class="bg-sky-500" style="width: {{ (v5 / total * 100) | round(1) }}%"></div>
+          </div>
+        </article>
+
+        {# 6개마다 페이지 끊기 (2열 × 3행) #}
+        {% if loop.index % 6 == 0 %}
+          <div class="col-span-3 h-0"></div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <footer class="report-page-footer mt-8">
+    <span class="page-number"></span>
+  </footer>
+</div>
+
+<style>
+/* 2열 그리드용 텍스트 축약 */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 페이지 분할 강화 */
+@media print {
+  .break-inside-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+</style>
+
+<!-- Chart.js 세로선차트 구현 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 차트 데이터 준비
+  const categoryData = {{ category | tojson }};
+  const categoryName = (categoryData.name || categoryData.title || "").toLowerCase();
+
+  // 소분류별 데이터 구조화
+  const subcategories = categoryData.subcategories || [];
+  const chartData = [];
+  const subcategoryRanges = [];
+  let currentIndex = 0;
+
+  subcategories.forEach(subcat => {
+    const startIndex = currentIndex;
+    subcat.items.forEach(item => {
+      chartData.push({
+        label: item.question ? item.question.substring(0, 15) + '...' : 'N/A',
+        score: item.average || item.score || 0,
+        benchmark: item.benchmark || 3.5,
+        percentile: item.percentile || 50,
+        subcategory: subcat.name
+      });
+      currentIndex++;
+    });
+
+    subcategoryRanges.push({
+      name: subcat.name,
+      start: startIndex,
+      end: currentIndex - 1,
+      average: subcat.average
+    });
+  });
+
+  // 평균 계산
+  const average = chartData.reduce((sum, item) => sum + item.score, 0) / chartData.length || 0;
+
+  // 차트 ID 결정 (더 포괄적인 키워드 매칭)
+  let chartId = '';
+  if (categoryName.includes('input') || categoryName.includes('투입') || categoryName.includes('전략') || categoryName.includes('구조')) {
+    chartId = 'inputVerticalChart';
+  } else if (categoryName.includes('process') || categoryName.includes('과정') || categoryName.includes('프로세스') || categoryName.includes('리더') || categoryName.includes('협업') || categoryName.includes('의사소통')) {
+    chartId = 'processVerticalChart';
+  } else if (categoryName.includes('output') || categoryName.includes('산출') || categoryName.includes('결과') || categoryName.includes('성과') || categoryName.includes('몰입') || categoryName.includes('문화')) {
+    chartId = 'outputVerticalChart';
+  }
+
+  const ctx = document.getElementById(chartId);
+  if (!ctx || chartData.length === 0) return;
+
+  // 색상 결정
+  const colors = {
+    'input': { primary: '#0f4fa8', secondary: '#3b82f6', light: '#dbeafe' },
+    'process': { primary: '#10b981', secondary: '#34d399', light: '#d1fae5' },
+    'output': { primary: '#f97316', secondary: '#fb923c', light: '#fed7aa' }
+  };
+
+  const colorSet = colors[categoryName.replace(/[^a-z]/g, '')] || colors.input;
+
+  // 소분류별 배경색 플러그인
+  const subcategoryBackgroundPlugin = {
+    id: 'subcategoryBackground',
+    beforeDraw(chart) {
+      const {ctx, chartArea, scales} = chart;
+      if (!chartArea || !scales.x || subcategoryRanges.length === 0) return;
+
+      const {top, bottom, left, right} = chartArea;
+      const x = scales.x;
+
+      ctx.save();
+
+      subcategoryRanges.forEach((range, index) => {
+        // 교대로 배경색 적용
+        if (index % 2 === 1) {
+          const xStart = x.getPixelForValue(range.start);
+          const xEnd = x.getPixelForValue(range.end + 1);
+
+          ctx.fillStyle = 'rgba(248, 250, 252, 0.8)';
+          ctx.fillRect(xStart, top, xEnd - xStart, bottom - top);
+        }
+
+        // 소분류 이름 표시
+        const centerX = x.getPixelForValue((range.start + range.end) / 2);
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'bold 10px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(range.name, centerX, top - 8);
+
+        // 구분선 (마지막 소분류가 아닌 경우)
+        if (index < subcategoryRanges.length - 1) {
+          const dividerX = x.getPixelForValue(range.end + 0.5);
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.moveTo(dividerX, top);
+          ctx.lineTo(dividerX, bottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      });
+
+      ctx.restore();
+    }
+  };
+
+  // Best/Worst 뱃지 플러그인 - 모서리 둥근 파스텔 톤
+  const badgePlugin = {
+    id: 'badgePlugin',
+    afterDraw(chart) {
+      const {ctx, scales: {x, y}} = chart;
+      const maxScore = Math.max(...chartData.map(d => d.score));
+      const minScore = Math.min(...chartData.map(d => d.score));
+
+      chartData.forEach((item, index) => {
+        if (item.score === maxScore || item.score === minScore) {
+          const xPos = x.getPixelForValue(index);
+          const yPos = y.getPixelForValue(item.score);
+
+          // 뱃지 크기 설정
+          const badgeWidth = 24;
+          const badgeHeight = 12;
+          const borderRadius = 6;
+
+          // 뱃지 배경 (둥근 모서리) - roundRect 폴백 포함
+          ctx.save();
+          ctx.fillStyle = item.score === maxScore ? '#DBEAFE' : '#FEE2E2'; // 파스텔 톤
+
+          // roundRect 지원 확인 및 폴백
+          if (ctx.roundRect) {
+            ctx.beginPath();
+            ctx.roundRect(xPos - badgeWidth/2, yPos + 16, badgeWidth, badgeHeight, borderRadius);
+            ctx.fill();
+          } else {
+            // 폴백: 일반 사각형
+            ctx.fillRect(xPos - badgeWidth/2, yPos + 16, badgeWidth, badgeHeight);
+          }
+
+          // 뱃지 텍스트
+          ctx.fillStyle = item.score === maxScore ? '#3B82F6' : '#EF4444'; // 진한 색상 텍스트
+          ctx.font = 'bold 7px -apple-system, BlinkMacSystemFont, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(item.score === maxScore ? 'Best' : 'Worst', xPos, yPos + 22);
+          ctx.restore();
+        }
+      });
+    }
+  };
+
+  // Chart.js 플러그인 등록
+  Chart.register(ChartDataLabels, subcategoryBackgroundPlugin, badgePlugin);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartData.map(item => item.label),
+      datasets: [{
+        label: '점수',
+        data: chartData.map(item => item.score),
+        borderColor: colorSet.primary,
+        backgroundColor: 'transparent',
+        pointBackgroundColor: chartData.map(item => {
+          const maxScore = Math.max(...chartData.map(d => d.score));
+          const minScore = Math.min(...chartData.map(d => d.score));
+
+          if (item.score === maxScore) {
+            return '#DBEAFE'; // 최고점: 파스텔 파란색
+          } else if (item.score === minScore) {
+            return '#FEE2E2'; // 최저점: 파스텔 빨간색
+          }
+          return colorSet.primary; // 나머지: 기본색
+        }),
+        pointBorderColor: chartData.map(item => {
+          const maxScore = Math.max(...chartData.map(d => d.score));
+          const minScore = Math.min(...chartData.map(d => d.score));
+
+          if (item.score === maxScore) {
+            return '#3B82F6'; // 최고점 테두리: 파란색
+          } else if (item.score === minScore) {
+            return '#EF4444'; // 최저점 테두리: 빨간색
+          }
+          return colorSet.primary; // 나머지 테두리
+        }),
+        borderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.1,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          top: 35,
+          bottom: 50
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            afterLabel: function(context) {
+              const dataIndex = context.dataIndex;
+              const item = chartData[dataIndex];
+              return [
+                `백분위: ${item.percentile}%`,
+                `벤치마크 대비: ${(item.score - item.benchmark).toFixed(1)}`
+              ];
+            }
+          }
+        },
+        datalabels: {
+          display: true,
+          align: 'top',
+          anchor: 'end',
+          color: '#374151',
+          font: {
+            weight: 'bold',
+            size: 10
+          },
+          formatter: function(value) {
+            return value.toFixed(1);
+          }
+        }
+      },
+      scales: {
+        y: {
+          min: function(context) {
+            const allScores = chartData.map(item => item.score);
+            const minScore = Math.min(...allScores);
+            const maxScore = Math.max(...allScores);
+            const range = maxScore - minScore;
+
+            // 차이가 작으면 범위를 좁혀서 부각
+            if (range < 1) {
+              return Math.max(0, minScore - 0.3);
+            } else {
+              return Math.max(0, minScore - 0.5);
+            }
+          },
+          max: 5.2,  // 최대값을 5.2로 고정하여 상단 여백 확보
+          ticks: {
+            stepSize: 0.2,
+            font: { size: 10 },
+            color: '#6b7280'
+          },
+          grid: {
+            color: 'rgba(148,163,184,0.12)',
+            drawBorder: false
+          },
+          title: {
+            display: true,
+            text: '점수',
+            font: { size: 11 },
+            color: '#6b7280'
+          }
+        },
+        x: {
+          ticks: {
+            maxRotation: 30,
+            minRotation: 30,
+            font: { size: 8 },
+            color: '#6b7280'
+          },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+});
+</script>

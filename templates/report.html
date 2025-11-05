@@ -1,0 +1,64 @@
+{# templates/report.html #}
+{% extends "base.html" %}
+
+{% block title %}{{ report.org_name }} 조직 효과성 진단 결과{% endblock %}
+
+{% block content %}
+{# ✅ AI 결과가 없을 때도 항상 dict 로 만들어둔다 #}
+{% set ai = ai_result or (report.summary.ai if report.summary is defined and report.summary.ai is defined else {}) %}
+
+<div class="report-screen">
+
+  {# 0. 표지 #}
+  <div class="report-page">
+    {% include "pages/cover.html" %}
+  </div>
+
+  {# 1. Executive Summary (Preview) #}
+  <div class="report-page">
+    {% include "pages/executive_summary.html" %}
+  </div>
+
+  {# 1-1. Executive Summary Detail #}
+  <div class="report-page">
+    {% include "pages/executive_summary_detail.html" %}
+  </div>
+
+
+  {# 3. 진단 상세 - IPO별로 페이지 분할 #}
+  {% if report.diagnostic is defined and report.diagnostic.categories is defined %}
+    {% for category in report.diagnostic.categories %}
+    {% set _ = category.update({'chart_id': loop.index0}) %}
+    <div class="report-page">
+      {# 각 카테고리별로 개별 진단 내용만 표시 #}
+      {% include "report/organizational_effectiveness/diagnostic_single.html" %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="report-page">
+      <div class="px-12 py-10">
+        <p class="text-sm text-slate-400">표시할 진단 데이터가 없습니다.</p>
+      </div>
+      <footer class="report-page-footer">
+        <span class="footer-text">진단 상세</span>
+        <span class="page-number"></span>
+      </footer>
+    </div>
+  {% endif %}
+
+
+  {# 5. 주관식 원문 (전처리된 버전) #}
+  {% if report.open_ended %}
+  <div class="report-page">
+    {% include "pages/open_ended.html" %}
+  </div>
+  {% endif %}
+
+  {# 6. Appendix #}
+  <div class="report-page">
+    {% include "pages/appendix.html" %}
+  </div>
+
+</div>
+
+{% endblock %}

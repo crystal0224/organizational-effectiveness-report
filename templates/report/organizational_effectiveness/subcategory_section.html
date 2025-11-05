@@ -1,0 +1,134 @@
+<!-- templates/report/organizational_effectiveness/subcategory_section.html -->
+{# 개별 소분류 섹션 렌더링 #}
+
+{# IPO별 색상 매핑 #}
+{% set category_name = (category["title"] if "title" in category else category["name"]).lower() %}
+{% if "input" in category_name %}
+  {% set theme_bg = "bg-blue-50" %}
+  {% set theme_border = "border-blue-100" %}
+  {% set theme_accent = "text-blue-700" %}
+  {% set theme_score_bg = "bg-blue-100" %}
+{% elif "process" in category_name %}
+  {% set theme_bg = "bg-emerald-50" %}
+  {% set theme_border = "border-emerald-100" %}
+  {% set theme_accent = "text-emerald-700" %}
+  {% set theme_score_bg = "bg-emerald-100" %}
+{% elif "output" in category_name %}
+  {% set theme_bg = "bg-orange-50" %}
+  {% set theme_border = "border-orange-100" %}
+  {% set theme_accent = "text-orange-700" %}
+  {% set theme_score_bg = "bg-orange-100" %}
+{% else %}
+  {% set theme_bg = "bg-slate-50" %}
+  {% set theme_border = "border-slate-100" %}
+  {% set theme_accent = "text-slate-700" %}
+  {% set theme_score_bg = "bg-slate-100" %}
+{% endif %}
+
+<section class="mb-8 subcategory-item" style="page-break-inside: avoid; break-inside: avoid; margin-bottom: 1.5rem;">
+  <!-- 소분류 헤더 -->
+  <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200">
+    <div>
+      <h3 class="text-sm font-semibold {{ theme_accent }}">{{ subcat["name"] }}</h3>
+      <p class="text-xs text-slate-500 mt-1">{{ subcat["item_count"] }}개 문항</p>
+    </div>
+    <div class="text-right">
+      <p class="text-xs text-slate-400">평균 점수</p>
+      <p class="text-lg font-bold {{ theme_accent }}">
+        {% if subcat["average"] is not none %}
+          {{ "%.1f"|format(subcat["average"]) }}
+        {% else %}-{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- 소분류 내 문항들을 3열로 배치 -->
+  <div class="grid grid-cols-3 gap-1">
+    {% for item in subcat["items"] %}
+      <article class="rounded-lg border border-slate-100 bg-white shadow-sm px-3 py-3" style="width: 100%; page-break-inside: avoid; break-inside: avoid;">
+        <!-- 문항과 점수 -->
+        <div class="flex justify-between gap-3 mb-2">
+          <div class="flex-1 min-w-0">
+            <p class="text-xs text-slate-900 leading-relaxed line-clamp-2">
+              {{ item["question"] }}
+            </p>
+          </div>
+          <div class="flex gap-2 shrink-0">
+            <div class="text-right">
+              <p class="text-[8px] text-slate-400 mb-1">점수</p>
+              <p class="text-sm font-semibold {{ theme_accent }}">
+                {% if item["average"] is not none %}
+                  {{ "%.1f"|format(item["average"]) }}
+                {% else %}-{% endif %}
+              </p>
+            </div>
+            <div class="text-right">
+              <p class="text-[8px] text-slate-400 mb-1">BM</p>
+              <p class="text-xs text-slate-600">
+                {% if item["benchmark"] is not none %}
+                  {{ "%.1f"|format(item["benchmark"]) }}
+                {% else %}-{% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {# 응답 분포 요약 (간소화) #}
+        {% if item["dist_agg"] is defined %}
+          <div class="flex gap-2 text-[10px] text-slate-400 mb-1">
+            <span class="inline-flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-300 inline-block"></span>
+              부정 {{ "%.0f"|format(item["dist_agg"]["neg_pct"]) }}%
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-300 inline-block"></span>
+              중립 {{ "%.0f"|format(item["dist_agg"]["mid_pct"]) }}%
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-sky-400 inline-block"></span>
+              긍정 {{ "%.0f"|format(item["dist_agg"]["pos_pct"]) }}%
+            </span>
+          </div>
+        {% endif %}
+
+        {# 응답 분포 바 (축소형) #}
+        {% set r = item["responses"] if item["responses"] is defined else {} %}
+        {% set v1 = r.get("veryLow", 0) %}
+        {% set v2 = r.get("low", 0) %}
+        {% set v3 = r.get("medium", 0) %}
+        {% set v4 = r.get("high", 0) %}
+        {% set v5 = r.get("veryHigh", 0) %}
+        {% set total = v1 + v2 + v3 + v4 + v5 %}
+        {% if total == 0 %}
+          {% set total = 1 %}
+        {% endif %}
+
+        <div class="h-1 rounded-full bg-slate-100 overflow-hidden flex">
+          <div class="bg-rose-300" style="width: {{ (v1 / total * 100) | round(1) }}%"></div>
+          <div class="bg-rose-200" style="width: {{ (v2 / total * 100) | round(1) }}%"></div>
+          <div class="bg-slate-300" style="width: {{ (v3 / total * 100) | round(1) }}%"></div>
+          <div class="bg-sky-300" style="width: {{ (v4 / total * 100) | round(1) }}%"></div>
+          <div class="bg-sky-500" style="width: {{ (v5 / total * 100) | round(1) }}%"></div>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<style>
+/* 2열 그리드용 텍스트 축약 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 페이지 분할 강화 */
+@media print {
+  .break-inside-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+</style>

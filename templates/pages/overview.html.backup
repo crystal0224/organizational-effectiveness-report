@@ -1,0 +1,4 @@
+{# templates/pages/overview.html #}
+<section class="page overview-page">
+  {% include "report/organizational_effectiveness/overview.html" %}
+</section>

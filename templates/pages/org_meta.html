@@ -1,0 +1,16 @@
+{# templates/pages/org_meta.html #}
+{% set ai = ai_result or ai or {} %}
+
+<section class="w-full bg-white rounded-xl border border-slate-200 shadow-sm mb-6">
+  <div class="px-6 py-4 border-b border-slate-100">
+    <h2 class="text-base font-semibold text-slate-900">조직 메타 (주관식 AI 요약)</h2>
+    <p class="text-sm text-slate-500 mt-1">주관식 응답에서 반복적으로 등장한 조직 특성·불만·현장 이슈를 모은 영역입니다.</p>
+  </div>
+  <div class="px-6 py-5 text-sm text-slate-700 leading-relaxed">
+    {% if ai.free_text %}
+      {{ ai.free_text | safe }}
+    {% else %}
+      <p class="text-slate-400 text-xs">AI가 요약한 주관식 데이터가 없습니다.</p>
+    {% endif %}
+  </div>
+</section>

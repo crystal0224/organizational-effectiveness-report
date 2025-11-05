@@ -1,0 +1,469 @@
+<!-- templates/report/organizational_effectiveness/diagnostic_single.html -->
+{# 단일 카테고리만 표시하는 진단 템플릿 - 페이지 분할 개선 #}
+
+<!-- 소분류를 내용에 맞게 페이지 분할 - 간단한 방식 -->
+{% set subcategories = category["subcategories"] if "subcategories" in category else [] %}
+{% set total_subcats = subcategories|length %}
+
+<!-- 콘텐츠 기반 스마트 분할 로직 -->
+{% if total_subcats <= 5 %}
+  {% set split_points = [] %}
+{% elif total_subcats <= 10 %}
+  {% set split_points = [total_subcats // 2] %}
+{% else %}
+  {% set split_points = [total_subcats // 3, (total_subcats * 2) // 3] %}
+{% endif %}
+
+<!-- IPO별 색상 매핑 -->
+{% set category_name = (category["title"] if "title" in category else category["name"]).lower() %}
+{% if "input" in category_name %}
+  {% set theme_bg = "bg-blue-50" %}
+  {% set theme_border = "border-blue-100" %}
+  {% set theme_accent = "text-blue-700" %}
+  {% set theme_score_bg = "bg-blue-100" %}
+  {% set theme_icon = "INPUT" %}
+  {% set theme_title = "조직 효과성의 기반 요소" %}
+  {% set theme_desc_1 = "조직 관점에서는 명확한 전략 방향과 VWBE 실천 환경을 구축합니다. 목표와 우선순위가 분명하고, 구성원이 자율적으로 일할 수 있는 환경과 일-삶의 균형을 지원합니다." %}
+  {% set theme_desc_2 = "구성원 관점에서는 개인의 역할 인식, 역량 수준, 동기와 윤리의식 등 조직 성과 창출에 필요한 개인적 준비도를 점검합니다." %}
+  {% set theme_desc_3 = "환경 관점에서는 경영층의 지원, 필요한 자원 확보, 공정한 평가와 성장 기회 등 조직이 제공해야 할 제도적 뒷받침을 평가합니다." %}
+{% elif "process" in category_name %}
+  {% set theme_bg = "bg-emerald-50" %}
+  {% set theme_border = "border-emerald-100" %}
+  {% set theme_accent = "text-emerald-700" %}
+  {% set theme_score_bg = "bg-emerald-100" %}
+  {% set theme_icon = "PROCESS" %}
+  {% set theme_title = "SKMS 실천을 통한 가치 창조" %}
+  {% set theme_desc_1 = "투입된 자원과 역량이 실제 성과로 전환되는 핵심 실행 과정입니다. 도전적 목표를 추구하며 SUPEX를 지향하고, 기존 틀을 깨는 유연한 사고로 접근합니다." %}
+  {% set theme_desc_2 = "과감한 실행을 통해 문제를 적극적으로 해결하고 신속하게 상황을 파악합니다. 적극적 소통으로 의사결정에 참여하고 자유롭게 의견을 교환합니다." %}
+  {% set theme_desc_3 = "팀워크 발휘로 상호 협력하고 정보를 공유하며, 외부 협업을 통해 조직 간 협력적 네트워크를 구축하여 시너지를 창출합니다." %}
+{% elif "output" in category_name %}
+  {% set theme_bg = "bg-orange-50" %}
+  {% set theme_border = "border-orange-100" %}
+  {% set theme_accent = "text-orange-700" %}
+  {% set theme_score_bg = "bg-orange-100" %}
+  {% set theme_icon = "OUTPUT" %}
+  {% set theme_title = "지속가능한 성과와 구성원 행복" %}
+  {% set theme_desc_1 = "조직의 궁극적 목적인 조직 성과와 구성원 행복을 동시에 달성하는 것을 목표로 합니다." %}
+  {% set theme_desc_2 = "조직 성과는 목표 달성, 적시성, 혁신성, 지속가능성 등을 통해 측정되며, 단기적 성과와 장기적 경쟁력을 균형있게 추구합니다." %}
+  {% set theme_desc_3 = "구성원 행복은 긍정적 정서, 일의 가치 인식, 성취감, 개인 성장, 미래에 대한 기대 등을 포함하여 구성원이 조직에서 의미있는 경험을 하고 있는지를 확인합니다." %}
+{% else %}
+  {% set theme_bg = "bg-slate-50" %}
+  {% set theme_border = "border-slate-100" %}
+  {% set theme_accent = "text-slate-700" %}
+  {% set theme_score_bg = "bg-slate-100" %}
+  {% set theme_icon = "DIAG" %}
+  {% set theme_title = "진단 영역" %}
+  {% set theme_desc_1 = "해당 영역의 진단 결과입니다." %}
+  {% set theme_desc_2 = "" %}
+  {% set theme_desc_3 = "" %}
+{% endif %}
+
+<!-- 첫 번째 페이지 -->
+<div class="report-section bg-white px-10 py-8 diagnostic-page-first" style="page-break-before: always; break-before: always;">
+
+  <!-- 헤더 -->
+  <header class="diagnostic-header flex items-center justify-between border-b border-slate-200 pb-4 mb-6">
+    <div>
+      <p class="text-xs text-slate-400">Diagnostic Detail</p>
+      <h1 class="text-base font-semibold text-slate-900">{{ report.org_name }}</h1>
+    </div>
+    <p class="text-xs text-slate-400">
+      {{ category["title"] if "title" in category else category["name"] }}
+    </p>
+  </header>
+
+  <!-- 영역별 설명 카드 -->
+  <div class="rounded-lg border {{ theme_border }} {{ theme_bg }}/30 px-4 py-4 mb-6 flex gap-6">
+    <div class="flex-1">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-lg {{ theme_score_bg }} flex items-center justify-center">
+          <span class="{{ theme_accent }} text-sm font-bold">{{ theme_icon }}</span>
+        </div>
+        <h3 class="text-sm font-semibold {{ theme_accent }} ml-3">{{ theme_title }}</h3>
+      </div>
+      {% if theme_desc_1 %}
+        <p class="text-xs text-slate-700 leading-relaxed mb-2">
+          <strong>{{ theme_desc_1.split('에서는')[0] }}에서는</strong> {{ theme_desc_1.split('에서는')[1] if '에서는' in theme_desc_1 else theme_desc_1 }}
+        </p>
+      {% endif %}
+      {% if theme_desc_2 %}
+        <p class="text-xs text-slate-700 leading-relaxed mb-2">
+          <strong>{{ theme_desc_2.split('에서는')[0] }}에서는</strong> {{ theme_desc_2.split('에서는')[1] if '에서는' in theme_desc_2 else theme_desc_2 }}
+        </p>
+      {% endif %}
+      {% if theme_desc_3 %}
+        <p class="text-xs text-slate-700 leading-relaxed">
+          <strong>{{ theme_desc_3.split('에서는')[0] }}에서는</strong> {{ theme_desc_3.split('에서는')[1] if '에서는' in theme_desc_3 else theme_desc_3 }}
+        </p>
+      {% endif %}
+    </div>
+    <div class="flex flex-col items-center justify-center min-w-[120px]">
+      <p class="text-xs text-slate-400 mb-2">영역 평균</p>
+      <div class="w-16 h-16 rounded-xl {{ theme_score_bg }} flex items-center justify-center">
+        <p class="text-2xl font-bold {{ theme_accent }}">
+          {% if category["average"] is not none %}
+            {{ "%.1f"|format(category["average"]) }}
+          {% else %}-{% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 차트 영역 -->
+  <div class="mb-6">
+    <div class="bg-white rounded-lg border border-slate-100 p-4">
+      <div class="h-[280px] relative">
+        <canvas id="{{ category_name }}VerticalChart_{{ category.get('chart_id', 'single') }}"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 차트와 진단 항목 사이 간격 -->
+  <div style="margin-top: 2rem;"></div>
+
+  <!-- 첫 번째 페이지의 소분류들 -->
+  <div class="subcategory-grid">
+  {% if subcategories %}
+    {% if split_points|length == 0 %}
+      <!-- 분할이 필요없는 경우 모든 소분류 표시 -->
+      {% for subcat in subcategories %}
+        {% include 'report/organizational_effectiveness/subcategory_section.html' %}
+      {% endfor %}
+    {% else %}
+      <!-- 첫 번째 분할점까지의 소분류들 -->
+      {% for subcat in subcategories[:split_points[0]] %}
+        {% include 'report/organizational_effectiveness/subcategory_section.html' %}
+      {% endfor %}
+    {% endif %}
+  {% endif %}
+  </div>
+
+  <footer class="report-page-footer mt-8">
+    <span class="page-number"></span>
+  </footer>
+</div>
+
+<!-- 두 번째 페이지 (분할이 필요한 경우만) -->
+{% if split_points|length > 0 %}
+<div class="report-section bg-white px-10 py-8 diagnostic-page-second" style="page-break-before: always; break-before: always;">
+  <header class="diagnostic-header flex items-center justify-between border-b border-slate-200 pb-4 mb-6">
+    <div>
+      <p class="text-xs text-slate-400">Diagnostic Detail (continued)</p>
+      <h1 class="text-base font-semibold text-slate-900">{{ report.org_name }}</h1>
+    </div>
+    <p class="text-xs text-slate-400">
+      {{ category["title"] if "title" in category else category["name"] }} (계속)
+    </p>
+  </header>
+
+  <!-- 두 번째 페이지의 소분류들 (분할점 이후) -->
+  <div class="subcategory-grid">
+  {% for subcat in subcategories[split_points[0]:] %}
+    {% include 'report/organizational_effectiveness/subcategory_section.html' %}
+  {% endfor %}
+  </div>
+
+  <footer class="report-page-footer mt-8">
+    <span class="page-number"></span>
+  </footer>
+</div>
+{% endif %}
+
+<style>
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media print {
+  .break-inside-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+</style>
+
+<!-- Chart.js 세로선차트 구현 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 차트 데이터 준비 (현재 카테고리만)
+  const categoryData = {{ category | tojson }};
+  const categoryName = (categoryData.name || categoryData.title || "").toLowerCase();
+
+  // 소분류별 데이터 구조화
+  const subcategories = categoryData.subcategories || [];
+  const chartData = [];
+  const subcategoryRanges = [];
+  let currentIndex = 0;
+
+  subcategories.forEach(subcat => {
+    const startIndex = currentIndex;
+    subcat.items.forEach(item => {
+      chartData.push({
+        label: item.question ? item.question.substring(0, 15) + '...' : 'N/A',
+        score: item.average || item.score || 0,
+        benchmark: item.benchmark || 3.5,
+        percentile: item.percentile || 50,
+        subcategory: subcat.name
+      });
+      currentIndex++;
+    });
+
+    subcategoryRanges.push({
+      name: subcat.name,
+      start: startIndex,
+      end: currentIndex - 1,
+      average: subcat.average
+    });
+  });
+
+  // 차트 ID 결정
+  const chartIdSuffix = '{{ category.get("chart_id", "single") }}';
+  let chartId = '';
+  if (categoryName.includes('input') || categoryName.includes('투입') || categoryName.includes('전략') || categoryName.includes('구조')) {
+    chartId = 'inputVerticalChart_' + chartIdSuffix;
+  } else if (categoryName.includes('process') || categoryName.includes('과정') || categoryName.includes('프로세스') || categoryName.includes('리더') || categoryName.includes('협업') || categoryName.includes('의사소통')) {
+    chartId = 'processVerticalChart_' + chartIdSuffix;
+  } else if (categoryName.includes('output') || categoryName.includes('산출') || categoryName.includes('결과') || categoryName.includes('성과') || categoryName.includes('몰입') || categoryName.includes('문화')) {
+    chartId = 'outputVerticalChart_' + chartIdSuffix;
+  }
+
+  const ctx = document.getElementById(chartId);
+  if (!ctx || chartData.length === 0) return;
+
+  // 색상 결정
+  const colors = {
+    'input': { primary: '#0f4fa8', secondary: '#3b82f6', light: '#dbeafe' },
+    'process': { primary: '#10b981', secondary: '#34d399', light: '#d1fae5' },
+    'output': { primary: '#f97316', secondary: '#fb923c', light: '#fed7aa' }
+  };
+
+  const colorType = categoryName.includes('input') ? 'input' :
+                   categoryName.includes('process') ? 'process' : 'output';
+  const colorSet = colors[colorType] || colors.input;
+
+  // 소분류별 배경색 플러그인
+  const subcategoryBackgroundPlugin = {
+    id: 'subcategoryBackground',
+    beforeDraw(chart) {
+      const {ctx, chartArea, scales} = chart;
+      if (!chartArea || !scales.x || subcategoryRanges.length === 0) return;
+
+      const {top, bottom} = chartArea;
+      const x = scales.x;
+
+      ctx.save();
+
+      subcategoryRanges.forEach((range, index) => {
+        // 교대로 배경색 적용
+        if (index % 2 === 1) {
+          const xStart = x.getPixelForValue(range.start);
+          const xEnd = x.getPixelForValue(range.end + 1);
+
+          ctx.fillStyle = 'rgba(248, 250, 252, 0.8)';
+          ctx.fillRect(xStart, top, xEnd - xStart, bottom - top);
+        }
+
+        // 소분류 이름 표시
+        const centerX = x.getPixelForValue((range.start + range.end) / 2);
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'bold 10px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(range.name, centerX, top - 8);
+
+        // 구분선
+        if (index < subcategoryRanges.length - 1) {
+          const dividerX = x.getPixelForValue(range.end + 0.5);
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.moveTo(dividerX, top);
+          ctx.lineTo(dividerX, bottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      });
+
+      ctx.restore();
+    }
+  };
+
+  // Best/Worst 뱃지 플러그인 - 모서리 둥근 파스텔 톤
+  const badgePlugin = {
+    id: 'badgePlugin',
+    afterDraw(chart) {
+      const {ctx, scales: {x, y}} = chart;
+      const maxScore = Math.max(...chartData.map(d => d.score));
+      const minScore = Math.min(...chartData.map(d => d.score));
+
+      chartData.forEach((item, index) => {
+        if (item.score === maxScore || item.score === minScore) {
+          const xPos = x.getPixelForValue(index);
+          const yPos = y.getPixelForValue(item.score);
+
+          // 뱃지 크기 설정
+          const badgeWidth = 24;
+          const badgeHeight = 12;
+          const borderRadius = 6;
+
+          // 뱃지 배경 (둥근 모서리) - roundRect 폴백 포함
+          ctx.save();
+          ctx.fillStyle = item.score === maxScore ? '#DBEAFE' : '#FEE2E2'; // 파스텔 톤
+
+          // roundRect 지원 확인 및 폴백
+          if (ctx.roundRect) {
+            ctx.beginPath();
+            ctx.roundRect(xPos - badgeWidth/2, yPos + 16, badgeWidth, badgeHeight, borderRadius);
+            ctx.fill();
+          } else {
+            // 폴백: 일반 사각형
+            ctx.fillRect(xPos - badgeWidth/2, yPos + 16, badgeWidth, badgeHeight);
+          }
+
+          // 뱃지 텍스트
+          ctx.fillStyle = item.score === maxScore ? '#3B82F6' : '#EF4444'; // 진한 색상 텍스트
+          ctx.font = 'bold 7px -apple-system, BlinkMacSystemFont, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(item.score === maxScore ? 'Best' : 'Worst', xPos, yPos + 22);
+          ctx.restore();
+        }
+      });
+    }
+  };
+
+  // Chart.js 플러그인 등록
+  Chart.register(ChartDataLabels, subcategoryBackgroundPlugin, badgePlugin);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartData.map(item => item.label),
+      datasets: [{
+        label: '점수',
+        data: chartData.map(item => item.score),
+        borderColor: colorSet.primary,
+        backgroundColor: 'transparent',
+        pointBackgroundColor: chartData.map(item => {
+          const maxScore = Math.max(...chartData.map(d => d.score));
+          const minScore = Math.min(...chartData.map(d => d.score));
+
+          if (item.score === maxScore) {
+            return '#DBEAFE'; // 최고점: 파스텔 파란색
+          } else if (item.score === minScore) {
+            return '#FEE2E2'; // 최저점: 파스텔 빨간색
+          }
+          return colorSet.primary;
+        }),
+        pointBorderColor: chartData.map(item => {
+          const maxScore = Math.max(...chartData.map(d => d.score));
+          const minScore = Math.min(...chartData.map(d => d.score));
+
+          if (item.score === maxScore) {
+            return '#3B82F6'; // 최고점 테두리: 파란색
+          } else if (item.score === minScore) {
+            return '#EF4444'; // 최저점 테두리: 빨간색
+          }
+          return colorSet.primary;
+        }),
+        borderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.1,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          top: 35,
+          bottom: 50
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            afterLabel: function(context) {
+              const dataIndex = context.dataIndex;
+              const item = chartData[dataIndex];
+              return [
+                `백분위: ${item.percentile}%`,
+                `벤치마크 대비: ${(item.score - item.benchmark).toFixed(1)}`
+              ];
+            }
+          }
+        },
+        datalabels: {
+          display: true,
+          align: 'top',
+          anchor: 'end',
+          color: '#374151',
+          font: {
+            weight: 'bold',
+            size: 10
+          },
+          formatter: function(value) {
+            return value.toFixed(1);
+          }
+        }
+      },
+      scales: {
+        y: {
+          min: function() {
+            const allScores = chartData.map(item => item.score);
+            const minScore = Math.min(...allScores);
+            const maxScore = Math.max(...allScores);
+            const range = maxScore - minScore;
+
+            if (range < 1) {
+              return Math.max(0, minScore - 0.3);
+            } else {
+              return Math.max(0, minScore - 0.5);
+            }
+          },
+          max: 5.2,
+          ticks: {
+            stepSize: 0.2,
+            font: { size: 10 },
+            color: '#6b7280'
+          },
+          grid: {
+            color: 'rgba(148,163,184,0.12)',
+            drawBorder: false
+          },
+          title: {
+            display: true,
+            text: '점수',
+            font: { size: 11 },
+            color: '#6b7280'
+          }
+        },
+        x: {
+          ticks: {
+            maxRotation: 30,
+            minRotation: 30,
+            font: { size: 8 },
+            color: '#6b7280'
+          },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+});
+</script>

@@ -1,0 +1,659 @@
+<!-- templates/report/organizational_effectiveness/open-ended.html -->
+<section class="w-full bg-white px-10 py-8 space-y-6" class="report-section">
+  <!-- 헤더 -->
+  <header class="flex items-center justify-between gap-4">
+    <div>
+      <p class="text-xs uppercase tracking-wide text-slate-400">Open-ended Responses</p>
+      <h1 class="text-xl font-semibold text-slate-900 mt-1">
+        주관식 응답 분석
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        {{ report.organization_name or report.org_name or "업로드 데이터" }}
+      </p>
+    </div>
+    <div class="text-xs text-slate-400">
+      Open-Ended
+    </div>
+  </header>
+
+  <!-- 1. AI 종합 해석 섹션 -->
+  {% if report.open_ended.comprehensive_analysis %}
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-base font-semibold text-slate-900">AI 종합 해석</h2>
+      <p class="text-[0.6rem] text-slate-400">AI 분석</p>
+    </div>
+    <div class="h-px w-full bg-slate-200"></div>
+
+    <div class="rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+          <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-800">조직 특성 종합 분석</h3>
+      </div>
+
+      <div class="text-sm leading-relaxed text-slate-700 space-y-3">
+        <div class="whitespace-pre-line">{{ report.open_ended.comprehensive_analysis }}</div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- 2. 고급분석 페이지 1: 측면별 감성분석 -->
+  {% if report.open_ended.advanced_analysis and report.open_ended.advanced_analysis.aspect_sentiment %}
+</section>
+
+<!-- 페이지 브레이크 -->
+<div class="page-break-always"></div>
+
+<section class="w-full bg-white px-10 py-8 space-y-6" class="report-section">
+  <!-- 헤더 -->
+  <header class="flex items-center justify-between gap-4">
+    <div>
+      <p class="text-xs uppercase tracking-wide text-slate-400">Advanced Analysis</p>
+      <h1 class="text-xl font-semibold text-slate-900 mt-1">
+        측면별 감성분석
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        {{ report.organization_name or report.org_name or "업로드 데이터" }}
+      </p>
+    </div>
+    <div class="text-xs text-slate-400">
+      {% if report.report_date %}{{ report.report_date }}{% endif %}
+    </div>
+  </header>
+
+  {% set advanced = report.open_ended.advanced_analysis %}
+
+  <!-- 분석 개요 설명 -->
+  <section class="space-y-4">
+    <div class="rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+          <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-800">측면별 감성분석이란?</h3>
+      </div>
+      <div class="text-sm leading-relaxed text-slate-700 space-y-2">
+        <p>구성원들이 작성한 주관식 응답을 <strong>AI가 자동으로 5개 주제별로 분류</strong>하고, 각 주제에 대해 <strong>긍정적인지 부정적인지 정도를 점수</strong>로 나타냅니다.</p>
+        <div class="text-xs text-slate-600 space-y-1 mt-3">
+          <p><strong>📊 이렇게 분석됩니다:</strong></p>
+          <p>• <strong>조직문화</strong>: 회사 분위기, 가치관, 일하는 방식에 대한 의견 → 예: "우리 회사는 자유로운 분위기", "수직적 문화가 아쉬움"</p>
+          <p>• <strong>리더십</strong>: 상사나 관리자에 대한 의견 → 예: "팀장님이 소통을 잘해주심", "피드백이 부족함"</p>
+          <p>• <strong>업무환경</strong>: 사무실, 시설, 업무 도구에 대한 의견 → 예: "사무실이 쾌적함", "시스템이 불편함"</p>
+          <p>• <strong>성장기회</strong>: 교육, 승진, 발전 가능성에 대한 의견 → 예: "배울 기회가 많음", "성장이 정체됨"</p>
+          <p>• <strong>소통협력</strong>: 팀워크, 대화, 협업에 대한 의견 → 예: "팀원들과 잘 지냄", "정보 공유가 안됨"</p>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+          <p class="text-xs text-blue-700"><strong>💡 쉽게 말하면:</strong> 여러분이 쓴 의견을 AI가 읽고 "이 의견은 조직문화에 대한 내용이고, 긍정적이네/부정적이네"라고 자동으로 판단해서 점수를 매겨주는 방식입니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 측면별 감성분석 결과 -->
+  <section class="space-y-6">
+    <div class="flex items-center justify-between">
+      <h2 class="text-base font-semibold text-slate-900">영역별 감성 분석</h2>
+      <p class="text-[0.6rem] text-slate-400">AI 분석</p>
+    </div>
+    <div class="h-px w-full bg-slate-200"></div>
+
+    <!-- 분석 설명 -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+      <div class="flex items-start gap-3">
+        <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mt-0.5">
+          <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-blue-900 mb-1">감성 점수 분석 방법</h3>
+          <p class="text-xs text-blue-700 leading-relaxed">
+            구성원들이 작성한 주관식 응답을 AI가 5개 영역(조직문화, 리더십, 업무환경, 성장기회, 소통협력)으로 자동 분류하고,
+            각 영역별로 긍정(-1.0~+1.0)과 부정의 정도를 수치화했습니다. 아래 결과는 실제 응답 내용을 바탕으로 산출된 점수입니다.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for aspect, data in advanced.aspect_sentiment.items() %}
+      {% set score = data.average_sentiment | float %}
+      {% set positive_count = data.positive_count | default(0) %}
+      {% set negative_count = data.negative_count | default(0) %}
+      {% set total_count = data.total_responses | default(0) %}
+
+      <!-- 영역별 아이콘 설정 -->
+      {% set icon_info = {
+        '조직문화': {'icon': '🏢', 'bg': 'from-blue-50 to-blue-100', 'border': 'border-blue-200', 'accent': 'blue'},
+        '리더십': {'icon': '👑', 'bg': 'from-purple-50 to-purple-100', 'border': 'border-purple-200', 'accent': 'purple'},
+        '업무환경': {'icon': '💼', 'bg': 'from-green-50 to-green-100', 'border': 'border-green-200', 'accent': 'green'},
+        '성장기회': {'icon': '📈', 'bg': 'from-orange-50 to-orange-100', 'border': 'border-orange-200', 'accent': 'orange'},
+        '소통협력': {'icon': '🤝', 'bg': 'from-teal-50 to-teal-100', 'border': 'border-teal-200', 'accent': 'teal'}
+      } %}
+      {% set current_icon = icon_info.get(aspect, {'icon': '📊', 'bg': 'from-slate-50 to-slate-100', 'border': 'border-slate-200', 'accent': 'slate'}) %}
+
+      <div class="rounded-xl border {{ current_icon.border }} bg-gradient-to-br {{ current_icon.bg }} shadow-sm hover:shadow-md transition-all duration-300">
+        <!-- 헤더 -->
+        <div class="p-5 pb-3">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-2xl">
+              {{ current_icon.icon }}
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">{{ aspect }}</h3>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-600">총 {{ total_count }}개 응답</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                  {% if score > 0.2 %}bg-emerald-100 text-emerald-700
+                  {% elif score < -0.2 %}bg-rose-100 text-rose-700
+                  {% else %}bg-slate-100 text-slate-700{% endif %}">
+                  {% if score > 0.2 %}😊 긍정적
+                  {% elif score < -0.2 %}😟 부정적
+                  {% else %}😐 중립적{% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 감성 점수 -->
+          <div class="bg-white rounded-lg p-3 shadow-sm mb-3">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-medium text-slate-600">감성 점수</span>
+              <div class="text-xl font-bold
+                {% if score > 0.2 %}text-emerald-600
+                {% elif score < -0.2 %}text-rose-600
+                {% else %}text-slate-600{% endif %}">
+                {{ "%.2f"|format(score) }}
+              </div>
+            </div>
+            <!-- 감성 바 -->
+            <div class="w-full bg-slate-100 rounded-full h-2">
+              <div class="h-2 rounded-full transition-all duration-500
+                {% if score > 0.2 %}bg-emerald-500
+                {% elif score < -0.2 %}bg-rose-500
+                {% else %}bg-slate-400{% endif %}"
+                style="width: {{ ((score + 1) * 50)|round }}%"></div>
+            </div>
+            <div class="flex justify-between text-xs text-slate-500 mt-1">
+              <span>-1.0</span>
+              <span>0</span>
+              <span>+1.0</span>
+            </div>
+          </div>
+
+          <!-- 응답 분포 -->
+          <div class="bg-white rounded-lg p-3 shadow-sm">
+            <div class="text-xs font-medium text-slate-600 mb-2">응답 분포</div>
+            <div class="flex justify-between items-center text-xs">
+              <div class="flex items-center gap-1">
+                <div class="w-3 h-3 bg-rose-400 rounded-full"></div>
+                <span class="text-slate-600">{{ negative_count }}개</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <div class="w-3 h-3 bg-slate-300 rounded-full"></div>
+                <span class="text-slate-600">{{ total_count - positive_count - negative_count }}개</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <div class="w-3 h-3 bg-emerald-400 rounded-full"></div>
+                <span class="text-slate-600">{{ positive_count }}개</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 대표 의견 -->
+        {% if data.representative_responses %}
+        <div class="px-5 pb-5">
+          <div class="space-y-2">
+            {% if data.representative_responses.positive %}
+            <div class="bg-white rounded-lg p-3 border-l-4 border-emerald-400 shadow-sm">
+              <div class="flex items-start gap-2">
+                <div class="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center mt-0.5">
+                  <span class="text-xs text-white">+</span>
+                </div>
+                <blockquote class="text-xs text-slate-700 leading-relaxed">
+                  "{{ data.representative_responses.positive[:80] }}{% if data.representative_responses.positive|length > 80 %}...{% endif %}"
+                </blockquote>
+              </div>
+            </div>
+            {% endif %}
+
+            {% if data.representative_responses.negative %}
+            <div class="bg-white rounded-lg p-3 border-l-4 border-rose-400 shadow-sm">
+              <div class="flex items-start gap-2">
+                <div class="w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center mt-0.5">
+                  <span class="text-xs text-white">-</span>
+                </div>
+                <blockquote class="text-xs text-slate-700 leading-relaxed">
+                  "{{ data.representative_responses.negative[:80] }}{% if data.representative_responses.negative|length > 80 %}...{% endif %}"
+                </blockquote>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <footer class="report-page-footer mt-6">
+    <span class="page-number"></span>
+  </footer>
+</section>
+
+<!-- 고급분석 페이지 2: 근거 기반 제안 -->
+{% if advanced.evidence_suggestions %}
+<div style="page-break-before: always;"></div>
+
+<section class="w-full bg-white px-10 py-8 space-y-6" class="report-section">
+  <!-- 헤더 -->
+  <header class="flex items-center justify-between gap-4">
+    <div>
+      <p class="text-xs uppercase tracking-wide text-slate-400">Advanced Analysis</p>
+      <h1 class="text-xl font-semibold text-slate-900 mt-1">
+        근거 기반 제안
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        {{ report.organization_name or report.org_name or "업로드 데이터" }}
+      </p>
+    </div>
+    <div class="text-xs text-slate-400">
+      {% if report.report_date %}{{ report.report_date }}{% endif %}
+    </div>
+  </header>
+
+  <!-- 분석 개요 설명 -->
+  <section class="space-y-4">
+    <div class="rounded-xl border border-orange-100 bg-gradient-to-br from-orange-50 to-white p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+          <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-800">근거 기반 제안이란?</h3>
+      </div>
+      <div class="text-sm leading-relaxed text-slate-700 space-y-2">
+        <p>조직의 <strong>강점은 더욱 활용하고, 약점은 체계적으로 개선</strong>할 수 있도록 <strong>데이터에 근거한 구체적인 실행 방안</strong>을 제시합니다.</p>
+        <p class="text-xs text-slate-600">• 실제 응답 내용을 바탕으로 한 실행 가능한 개선 방안 도출</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 근거 기반 제안 결과 -->
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-base font-semibold text-slate-900">실행 방안 제안</h2>
+      <p class="text-[0.6rem] text-slate-400"></p>
+    </div>
+    <div class="h-px w-full bg-slate-200"></div>
+
+    <div class="space-y-6">
+      {% for suggestion in advanced.evidence_suggestions %}
+      <div class="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
+            {{ loop.index }}
+          </span>
+          <div class="flex-1">
+            <h4 class="text-sm font-medium text-slate-900">{{ suggestion.title }}</h4>
+            <span class="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded-md mt-1 inline-block">{{ suggestion.type }}</span>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h5 class="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              근거 응답
+            </h5>
+            <div class="space-y-2">
+              {% for evidence in suggestion.evidence %}
+              <div class="text-xs text-slate-600 bg-slate-50 rounded-lg px-3 py-3 border-l-2 border-green-200">
+                "{{ evidence }}"
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div>
+            <h5 class="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
+              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+              실행 방안
+            </h5>
+            <ul class="space-y-2">
+              {% for action in suggestion.action_items %}
+              <li class="text-xs text-slate-600 flex items-start gap-3 bg-blue-50 rounded-lg px-3 py-3">
+                <span class="mt-1 h-2 w-2 rounded-full bg-blue-400 flex-shrink-0"></span>
+                <span>{{ action }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <footer class="report-page-footer mt-6">
+    <span class="page-number"></span>
+  </footer>
+</section>
+{% endif %}
+
+<!-- 고급분석 페이지 3: 팀별 잠재유형 지도분석 -->
+{% if advanced.team_potential_mapping and advanced.team_potential_mapping != {'message': '팀/부서 정보가 없어 팀별 분석을 수행할 수 없습니다.'} %}
+<div style="page-break-before: always;"></div>
+
+<section class="w-full bg-white px-10 py-8 space-y-6" class="report-section">
+  <!-- 헤더 -->
+  <header class="flex items-center justify-between gap-4">
+    <div>
+      <p class="text-xs uppercase tracking-wide text-slate-400">Advanced Analysis</p>
+      <h1 class="text-xl font-semibold text-slate-900 mt-1">
+        팀별 잠재유형 지도분석
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        {{ report.organization_name or report.org_name or "업로드 데이터" }}
+      </p>
+    </div>
+    <div class="text-xs text-slate-400">
+      {% if report.report_date %}{{ report.report_date }}{% endif %}
+    </div>
+  </header>
+
+  <!-- 분석 개요 설명 -->
+  <section class="space-y-4">
+    <div class="rounded-xl border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+          <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-800">팀별 잠재유형 지도분석이란?</h3>
+      </div>
+      <div class="text-sm leading-relaxed text-slate-700 space-y-3">
+        <p><strong>각 팀/부서의 고유한 특성과 잠재력</strong>을 시각적으로 매핑하여, <strong>맞춤형 조직 개발 전략</strong> 수립을 지원합니다.</p>
+
+        <!-- 분석 조건 안내 -->
+        <p class="text-xs text-slate-400 mt-4">팀별 분석은 각 팀당 최소 3명 이상의 응답자가 있어야 정확한 분석이 가능합니다. 인원수가 부족한 팀은 분석 결과에서 제외됩니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4가지 팀 유형별 설명 -->
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-base font-semibold text-slate-900">4가지 팀 유형별 특징</h2>
+      <p class="text-[0.6rem] text-slate-400">Guide</p>
+    </div>
+    <div class="h-px w-full bg-slate-200"></div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <!-- 창조혁신형 -->
+      <div class="rounded-lg border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-3 shadow-sm">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="text-lg">🚀</div>
+          <div>
+            <h3 class="text-sm font-semibold text-blue-800">창조혁신형</h3>
+            <p class="text-xs text-blue-600">(Creative & Innovative)</p>
+          </div>
+        </div>
+        <p class="text-xs text-slate-700 mb-2">새로운 아이디어 창출과 혁신에 강점을 보이는 팀</p>
+        <div class="space-y-1 text-xs">
+          <div>
+            <span class="font-medium text-slate-700">특징:</span>
+            <span class="text-slate-600">창의적 사고, 도전정신, 변화 적응력, 실험적 접근</span>
+          </div>
+          <div>
+            <span class="font-medium text-slate-700">활용법:</span>
+            <span class="text-slate-600">신제품 개발, 프로세스 혁신, 미래 전략 수립 프로젝트에 투입</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 체계안정형 -->
+      <div class="rounded-lg border border-green-100 bg-gradient-to-br from-green-50 to-white p-3 shadow-sm">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="text-lg">⚖️</div>
+          <div>
+            <h3 class="text-sm font-semibold text-green-800">체계안정형</h3>
+            <p class="text-xs text-green-600">(Systematic & Stable)</p>
+          </div>
+        </div>
+        <p class="text-xs text-slate-700 mb-2">체계적이고 안정적인 업무 수행에 강점을 보이는 팀</p>
+        <div class="space-y-1 text-xs">
+          <div>
+            <span class="font-medium text-slate-700">특징:</span>
+            <span class="text-slate-600">명확한 프로세스 선호, 정확성, 안정성 중시, 계획적 실행</span>
+          </div>
+          <div>
+            <span class="font-medium text-slate-700">활용법:</span>
+            <span class="text-slate-600">품질관리, 리스크 관리, 규정 준수, 운영 최적화 업무에 투입</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 소통협력형 -->
+      <div class="rounded-lg border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-3 shadow-sm">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="text-lg">🤝</div>
+          <div>
+            <h3 class="text-sm font-semibold text-purple-800">소통협력형</h3>
+            <p class="text-xs text-purple-600">(Collaborative & Communicative)</p>
+          </div>
+        </div>
+        <p class="text-xs text-slate-700 mb-2">팀워크와 협력을 통한 시너지 창출에 강점을 보이는 팀</p>
+        <div class="space-y-1 text-xs">
+          <div>
+            <span class="font-medium text-slate-700">특징:</span>
+            <span class="text-slate-600">원활한 소통, 상호 지원, 갈등 조정 능력, 포용적 분위기</span>
+          </div>
+          <div>
+            <span class="font-medium text-slate-700">활용법:</span>
+            <span class="text-slate-600">크로스 팀 프로젝트, 고객 서비스, 조직 문화 개선에 투입</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 목표달성형 -->
+      <div class="rounded-lg border border-orange-100 bg-gradient-to-br from-orange-50 to-white p-3 shadow-sm">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="text-lg">🎯</div>
+          <div>
+            <h3 class="text-sm font-semibold text-orange-800">목표달성형</h3>
+            <p class="text-xs text-orange-600">(Goal-Oriented & Achievement-Focused)</p>
+          </div>
+        </div>
+        <p class="text-xs text-slate-700 mb-2">명확한 목표 설정과 강력한 실행력으로 성과를 달성하는 팀</p>
+        <div class="space-y-1 text-xs">
+          <div>
+            <span class="font-medium text-slate-700">특징:</span>
+            <span class="text-slate-600">성과 지향, 빠른 의사결정, 강한 실행력, 경쟁 동기</span>
+          </div>
+          <div>
+            <span class="font-medium text-slate-700">활용법:</span>
+            <span class="text-slate-600">매출 목표 달성, 긴급 프로젝트, 터닝어라운드 상황에 투입</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- 팀별 잠재유형 분석 결과 -->
+  {% set has_teams = false %}
+  {% for team_name, analysis in advanced.team_potential_mapping.items() %}
+    {% if team_name != 'message' and (analysis.size is not defined or analysis.size >= 1) %}
+      {% set has_teams = true %}
+    {% endif %}
+  {% endfor %}
+
+  {% if has_teams %}
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-base font-semibold text-slate-900">팀별 잠재유형 매핑</h2>
+      <p class="text-[0.6rem] text-slate-400">Team Analysis</p>
+    </div>
+    <div class="h-px w-full bg-slate-200"></div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for team_name, analysis in advanced.team_potential_mapping.items() %}
+      {% if team_name != 'message' and (analysis.size is not defined or analysis.size >= 1) %}
+      <div class="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h4 class="text-sm font-medium text-slate-900">{{ team_name }}</h4>
+          <span class="text-xs text-slate-500 bg-slate-100 rounded-full px-2 py-1">{{ analysis.size }}명</span>
+        </div>
+
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-slate-600">잠재유형</span>
+            <span class="px-3 py-1 text-sm rounded-full font-medium
+              {% if '혁신' in analysis.potential_type %}bg-green-100 text-green-700
+              {% elif '성장' in analysis.potential_type %}bg-blue-100 text-blue-700
+              {% elif '안정' in analysis.potential_type %}bg-yellow-100 text-yellow-700
+              {% else %}bg-red-100 text-red-700{% endif %}">
+              {{ analysis.potential_type }}
+            </span>
+          </div>
+
+          <div class="text-sm text-slate-600 bg-slate-50 rounded-lg px-4 py-3">
+            <span class="font-medium text-slate-700">주요특성:</span><br>
+            {{ analysis.dominant_trait }}
+          </div>
+
+          <div>
+            <h5 class="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
+              <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+              </svg>
+              발전 방향
+            </h5>
+            <ul class="space-y-2">
+              {% for suggestion in analysis.development_suggestions %}
+              <li class="text-xs text-slate-600 flex items-start gap-3 bg-purple-50 rounded-lg px-3 py-2">
+                <span class="mt-1 h-2 w-2 rounded-full bg-purple-400 flex-shrink-0"></span>
+                <span>{{ suggestion }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <footer class="report-page-footer mt-6">
+    <span class="page-number"></span>
+  </footer>
+</section>
+{% endif %}
+{% endif %}
+
+<!-- 주관식 응답 섹션 -->
+<div style="page-break-before: always;"></div>
+
+<section class="w-full bg-white px-10 py-8 space-y-6" class="report-section">
+  <!-- 헤더 -->
+  <header class="flex items-center justify-between gap-4">
+    <div>
+      <p class="text-xs uppercase tracking-wide text-slate-400">Detailed Responses</p>
+      <h1 class="text-xl font-semibold text-slate-900 mt-1">
+        주관식 응답 상세
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        {{ report.organization_name or report.org_name or "업로드 데이터" }}
+      </p>
+    </div>
+    <div class="text-xs text-slate-400">
+      {% if report.report_date %}{{ report.report_date }}{% endif %}
+    </div>
+  </header>
+
+  <!-- 3. 카테고리별 주관식 응답 표시 -->
+  {% set responses = report.open_ended.basic_responses if report.open_ended.basic_responses else report.open_ended %}
+  {# Sort responses by content length (longest first) #}
+  {% set responses_with_lengths = [] %}
+  {% for block in responses %}
+    {% set total_length = 0 %}
+    {% for answer in block.answers %}
+      {% set total_length = total_length + (answer|length) %}
+    {% endfor %}
+    {% set _ = block.update({'total_answer_length': total_length}) %}
+    {% set _ = responses_with_lengths.append(block) %}
+  {% endfor %}
+  {% set sorted_responses = responses_with_lengths | sort(attribute='total_answer_length', reverse=true) %}
+  {% set current_category = "" %}
+  {% set page_break_needed = false %}
+
+  {% for block in sorted_responses %}
+    {% if block.category != current_category %}
+      {% set current_category = block.category %}
+
+      <!-- 페이지 브레이크가 필요한 경우 -->
+      {% if page_break_needed %}
+        </section>
+        <div style="page-break-before: always;"></div>
+        <section class="w-full bg-white px-10 py-8 space-y-6" class="report-section">
+      {% endif %}
+
+      <!-- 카테고리 헤더 -->
+      <section class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold text-slate-900">
+            {{ current_category }}
+          </h2>
+        </div>
+        <div class="h-px w-full bg-slate-200"></div>
+        {% set page_break_needed = true %}
+    {% endif %}
+
+    <!-- 개별 문항 응답 -->
+    <div class="space-y-3">
+      <h3 class="text-sm font-medium text-slate-700 flex items-center gap-2">
+        <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600">
+          {{ block.header }}
+        </span>
+        {{ block.title }}
+      </h3>
+
+      <div class="space-y-2">
+        {% for ans in block.answers %}
+        <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3" style="page-break-inside: avoid; break-inside: avoid;">
+          <p class="text-sm text-slate-700 leading-relaxed">
+            {{ ans }}
+          </p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 카테고리 닫기 처리 -->
+    {% if loop.last or (loop.nextitem and loop.nextitem.category != current_category) %}
+      </section>
+    {% endif %}
+  {% endfor %}
+
+  <footer class="report-page-footer mt-6">
+    <span class="page-number"></span>
+  </footer>
+</section>

@@ -1,0 +1,72 @@
+# 조직별 브랜딩 설정 파일
+
+default:
+  name: "기본 브랜딩"
+  colors:
+    primary: "#0f4fa8"
+    secondary: "#10b981"
+    accent: "#f97316"
+  fonts:
+    primary: "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+    heading: "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+  logo:
+    path: "templates/branding/default/logo.png"
+    alt: "조직 로고"
+  template_path: "templates/branding/default/"
+
+sk_group:
+  name: "SK 그룹"
+  colors:
+    primary: "#e30613"  # SK Red
+    secondary: "#1a73e8"
+    accent: "#ff6900"
+  fonts:
+    primary: "SK텔레콤고딕, Arial, sans-serif"
+    heading: "SK텔레콤고딕 Bold, Arial Black, sans-serif"
+  logo:
+    path: "templates/branding/sk_group/logo.png"
+    alt: "SK 그룹 로고"
+  template_path: "templates/branding/sk_group/"
+
+samsung_group:
+  name: "삼성 그룹"
+  colors:
+    primary: "#1f4788"  # Samsung Blue
+    secondary: "#0066cc"
+    accent: "#ff6600"
+  fonts:
+    primary: "SamsungOne, Arial, sans-serif"
+    heading: "SamsungOne Bold, Arial Black, sans-serif"
+  logo:
+    path: "templates/branding/samsung_group/logo.png"
+    alt: "삼성 그룹 로고"
+  template_path: "templates/branding/samsung_group/"
+
+lg_group:
+  name: "LG 그룹"
+  colors:
+    primary: "#a50034"  # LG Wine Red
+    secondary: "#666666"
+    accent: "#ff0000"
+  fonts:
+    primary: "LG Smart UI, Arial, sans-serif"
+    heading: "LG Smart UI Bold, Arial Black, sans-serif"
+  logo:
+    path: "templates/branding/lg_group/logo.png"
+    alt: "LG 그룹 로고"
+  template_path: "templates/branding/lg_group/"
+
+# 브랜딩 매칭 규칙
+matching_rules:
+  # 조직명에 포함된 키워드로 자동 브랜딩 선택
+  "SK":
+    - "sk_group"
+  "삼성":
+    - "samsung_group"
+  "SAMSUNG":
+    - "samsung_group"
+  "LG":
+    - "lg_group"
+  # 기본값
+  "*":
+    - "default"

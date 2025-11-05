@@ -1,0 +1,17 @@
+{# templates/pages/diagnostic.html #}
+{% if report.diagnostic is defined and report.diagnostic.categories is defined %}
+  {% for category in report.diagnostic.categories %}
+  <section class="page diagnostic-page">
+    {% include "report/organizational_effectiveness/diagnostic.html" %}
+  </section>
+  {% endfor %}
+{% else %}
+  <section class="page diagnostic-page">
+    <p class="text-sm text-slate-400 px-12 py-10">
+      표시할 진단 데이터가 없습니다.
+    </p>
+    <footer class="report-page-footer">
+      <span class="page-number"></span>
+    </footer>
+  </section>
+{% endif %}

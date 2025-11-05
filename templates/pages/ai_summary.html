@@ -1,0 +1,97 @@
+{# templates/pages/ai_summary.html #}
+{% set ai = ai or {} %}
+{% set summary = report.summary or {} %}
+{% set ipo = summary.ipo or {} %}
+{% set input_score = ipo.input %}
+{% set process_score = ipo.process %}
+{% set output_score = ipo.output %}
+{% set final_exec = ai.final or ai.reviewer or ai.writer %}
+
+<section class="ai-exec-section" style="margin-top:1.2rem;">
+  <div style="font-size:1rem; font-weight:650; color:#0f172a; margin-bottom:.4rem;">
+    AI 기반 Executive Insight
+  </div>
+  <div style="font-size:.78rem; color:#6b7280; margin-bottom:.85rem;">
+    IPO 3영역 점수와 주관식 응답을 기반으로 AI가 한 조직진단 해석입니다. 필요 시 이 문단만 따로 편집해 사용하세요.
+  </div>
+
+  {# KPI 3개 #}
+  <div style="display:flex; gap:.75rem; margin-bottom:1rem;">
+    <div style="flex:1; background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.6rem .75rem;">
+      <div style="font-size:.65rem; text-transform:uppercase; color:#94a3b8; font-weight:600; margin-bottom:.35rem;">Input</div>
+      <div style="font-size:1.05rem; font-weight:650; color:#0f172a;">{{ input_score if input_score is not none else '-' }}</div>
+      <div style="font-size:.65rem; color:#94a3b8; margin-top:.25rem;">리소스·역량·구조 투입 수준</div>
+    </div>
+    <div style="flex:1; background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.6rem .75rem;">
+      <div style="font-size:.65rem; text-transform:uppercase; color:#94a3b8; font-weight:600; margin-bottom:.35rem;">Process</div>
+      <div style="font-size:1.05rem; font-weight:650; color:#0f172a;">{{ process_score if process_score is not none else '-' }}</div>
+      <div style="font-size:.65rem; color:#94a3b8; margin-top:.25rem;">협업·의사소통·리더십 실행</div>
+    </div>
+    <div style="flex:1; background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.6rem .75rem;">
+      <div style="font-size:.65rem; text-transform:uppercase; color:#94a3b8; font-weight:600; margin-bottom:.35rem;">Output</div>
+      <div style="font-size:1.05rem; font-weight:650; color:#0f172a;">{{ output_score if output_score is not none else '-' }}</div>
+      <div style="font-size:.65rem; color:#94a3b8; margin-top:.25rem;">성과·몰입·문화 인식</div>
+    </div>
+  </div>
+
+  {# 4분할 카드 #}
+  <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.9rem;">
+    {# 1. IPO 관점 #}
+    <div style="background:#ffffff; border:1px solid #dbeafe; border-radius:.75rem;">
+      <div style="background:#e5edff; padding:.4rem .7rem; border-radius:.75rem .75rem 0 0; font-weight:600; font-size:.7rem; color:#1f2937;">
+        1. IPO 관점 핵심 해석
+      </div>
+      <div style="padding:.55rem .7rem .65rem .7rem; font-size:.72rem; line-height:1.45; color:#111827;">
+        {% if ai.score %}
+          {{ ai.score | replace('\n','<br>') | safe }}
+        {% else %}
+          아직 AI가 IPO 관점 해석을 생성하지 않았습니다.
+        {% endif %}
+      </div>
+    </div>
+
+    {# 2. 문항별 개선 #}
+    <div style="background:#ffffff; border:1px solid #dcfce7; border-radius:.75rem;">
+      <div style="background:#d1fadf; padding:.4rem .7rem; border-radius:.75rem .75rem 0 0; font-weight:600; font-size:.7rem; color:#166534;">
+        2. 문항별 개선 필요 항목
+      </div>
+      <div style="padding:.55rem .7rem .65rem .7rem; font-size:.72rem; line-height:1.45; color:#111827;">
+        {% if ai.items %}
+          {{ ai.items | replace('\n','<br>') | safe }}
+        {% else %}
+          문항별로 낮은 항목이 탐지되지 않았거나, 원시 헤더명만 존재합니다.
+        {% endif %}
+      </div>
+    </div>
+
+    {# 3. 조직 컨텍스트 #}
+    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:.75rem;">
+      <div style="background:#f8fafc; padding:.4rem .7rem; border-radius:.75rem .75rem 0 0; font-weight:600; font-size:.7rem; color:#334155;">
+        3. 조직 컨텍스트
+      </div>
+      <div style="padding:.55rem .7rem .65rem .7rem; font-size:.72rem; line-height:1.45; color:#111827;">
+        {% if ai.org_context %}
+          {{ ai.org_context | replace('\n','<br>') | safe }}
+        {% elif ai.free_text %}
+          {{ ai.free_text | replace('\n','<br>') | safe }}
+        {% else %}
+          응답 수가 적거나 주관식 응답이 없어 조직 컨텍스트를 만들지 못했습니다.
+        {% endif %}
+      </div>
+    </div>
+
+    {# 4. 임원용 요약 - reviewer를 여기서 소비하고 더 이상 노출 X #}
+    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:.75rem;">
+      <div style="background:#eff6ff; padding:.4rem .7rem; border-radius:.75rem .75rem 0 0; font-weight:600; font-size:.7rem; color:#0f172a;">
+        4. 임원용 요약
+      </div>
+      <div style="padding:.55rem .7rem .65rem .7rem; font-size:.72rem; line-height:1.5; color:#111827;">
+        {% if final_exec %}
+          {{ final_exec | replace('\n','<br>') | safe }}
+        {% else %}
+          임원용 요약이 아직 생성되지 않았습니다.
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>

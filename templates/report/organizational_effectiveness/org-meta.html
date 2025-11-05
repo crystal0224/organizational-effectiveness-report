@@ -1,0 +1,13 @@
+{# templates/report/organizational_effectiveness/org-meta.html #}
+{% set ai = report.summary.ai %}
+{% if ai and ai.free_text %}
+<div class="page --org-meta">
+  <h1 class="section-title">조직 메타(주관식 AI 요약)</h1>
+  <p class="desc">
+    주관식 응답에서 식별정보를 제거하고, 조직 특성·반복 이슈·현장/본사 간 단절 등을 AI가 정리한 내용입니다.
+  </p>
+  <div class="ai-text">
+    {{ ai.free_text | safe }}
+  </div>
+</div>
+{% endif %}

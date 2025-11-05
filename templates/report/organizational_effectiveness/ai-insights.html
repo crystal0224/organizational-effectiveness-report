@@ -1,0 +1,161 @@
+<!-- templates/report/organizational_effectiveness/ai-insights.html -->
+<section class="w-full bg-white px-10 py-8 space-y-8">
+
+  <!-- 헤더 블록 -->
+  <header class="flex items-center justify-between gap-4">
+    <div>
+      <p class="text-xs uppercase tracking-wide text-slate-400">AI Analysis</p>
+      <h1 class="text-xl font-semibold text-slate-900 mt-1">
+        AI 기반 조직 진단 해석
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        통찰 및 개선 제언
+      </p>
+    </div>
+    <div class="text-xs text-slate-400">
+      {% if report.report_date %}{{ report.report_date }}{% endif %}
+    </div>
+  </header>
+
+  <!-- 안전한 AI 객체 추출 -->
+  {% set ai = ai_result or (report.summary.ai if report.summary is defined and report.summary.ai is defined else {}) %}
+
+  <!-- AI 해석 가능 여부 확인 -->
+  {% if ai and (ai.get("score") or ai.get("items") or ai.get("org_context") or ai.get("writer")) %}
+
+    <!-- 1. 종합 진단 해석 -->
+    {% if ai.get("writer") %}
+    <section class="space-y-3">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+          </svg>
+        </div>
+        <h2 class="text-base font-semibold text-slate-900">종합 진단 해석</h2>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-white px-6 py-5">
+        <div class="prose prose-sm prose-slate max-w-none">
+          <div class="whitespace-pre-line text-sm leading-relaxed text-slate-700">
+            {{ ai["writer"] }}
+          </div>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- 2. 조직 맥락 분석 -->
+    {% if ai.get("org_context") %}
+    <section class="space-y-3">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+        </div>
+        <h2 class="text-base font-semibold text-slate-900">조직 컨텍스트 분석</h2>
+      </div>
+      <div class="rounded-xl border border-emerald-100 bg-emerald-50/30 px-6 py-5">
+        <div class="text-sm leading-relaxed text-slate-700">
+          {{ ai["org_context"] }}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- 3. IPO 점수 해석 -->
+    {% if ai.get("score") %}
+    <section class="space-y-3">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+        <h2 class="text-base font-semibold text-slate-900">IPO 점수 해석</h2>
+      </div>
+      <div class="rounded-xl border border-orange-100 bg-orange-50/30 px-6 py-5">
+        <div class="text-sm leading-relaxed text-slate-700">
+          {{ ai["score"] }}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- 4. 문항별 개선 포인트 -->
+    {% if ai.get("items") %}
+    <section class="space-y-3">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+          </svg>
+        </div>
+        <h2 class="text-base font-semibold text-slate-900">핵심 개선 포인트</h2>
+      </div>
+      <div class="rounded-xl border border-violet-100 bg-violet-50/30 px-6 py-5">
+        <div class="text-sm leading-relaxed text-slate-700">
+          <div class="whitespace-pre-line">
+            {{ ai["items"] }}
+          </div>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- 5. 주관식 응답 인사이트 (있는 경우) -->
+    {% if ai.get("free_text") %}
+    <section class="space-y-3">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+          </svg>
+        </div>
+        <h2 class="text-base font-semibold text-slate-900">주관식 응답 인사이트</h2>
+      </div>
+      <div class="rounded-xl border border-pink-100 bg-pink-50/30 px-6 py-5">
+        <div class="text-sm leading-relaxed text-slate-700">
+          <div class="whitespace-pre-line">
+            {{ ai["free_text"] }}
+          </div>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- AI 생성 정보 -->
+    <div class="mt-8 pt-4 border-t border-slate-100">
+      <div class="flex items-center gap-2 text-xs text-slate-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>본 해석은 AI가 설문 데이터와 주관식 응답을 분석하여 한 결과입니다.</span>
+      </div>
+    </div>
+
+  {% else %}
+    <!-- AI 해석이 없는 경우 -->
+    <div class="text-center py-16">
+      <div class="w-16 h-16 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-4">
+        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+        </svg>
+      </div>
+      <h3 class="text-lg font-semibold text-slate-900 mb-2">AI 해석을 생성해주세요</h3>
+      <p class="text-sm text-slate-500 mb-6">
+        더 깊이 있는 인사이트를 위해 'AI 해석 생성하기' 기능을 사용해보세요.
+      </p>
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 text-xs rounded-lg">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>AI 해석은 리포트 미리보기 페이지에서 생성할 수 있습니다</span>
+      </div>
+    </div>
+  {% endif %}
+
+  <footer class="report-page-footer mt-8">
+    <span class="page-number"></span>
+  </footer>
+</section>

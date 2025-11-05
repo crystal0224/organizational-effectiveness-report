@@ -1,0 +1,36 @@
+{# templates/partials/components.html #}
+{% macro page_header(page_title, org_name, date_str) %}
+<div class="page-header">
+  <div>
+    <div class="org-name">{{ org_name }}</div>
+    <div class="date">{{ date_str }}</div>
+  </div>
+  <div class="page-title">{{ page_title }}</div>
+</div>
+{% endmacro %}
+
+{% macro response_bar(res) %}
+{% set total =
+  (res.veryLow or 0) +
+  (res.low or 0) +
+  (res.medium or 0) +
+  (res.high or 0) +
+  (res.veryHigh or 0)
+%}
+{% if total == 0 %}
+<div class="response-bar empty">응답 없음</div>
+{% else %}
+<div class="response-bar">
+  {% set v1 = ((res.veryLow or 0) / total * 100) %}
+  {% set v2 = ((res.low or 0) / total * 100) %}
+  {% set v3 = ((res.medium or 0) / total * 100) %}
+  {% set v4 = ((res.high or 0) / total * 100) %}
+  {% set v5 = ((res.veryHigh or 0) / total * 100) %}
+  <div class="seg very-low" style="width:{{ v1 }}%">{% if v1 > 5 %}<span>{{ "%.1f"|format(v1)|replace(".0","") }}%</span>{% endif %}</div>
+  <div class="seg low" style="width:{{ v2 }}%">{% if v2 > 5 %}<span>{{ "%.1f"|format(v2)|replace(".0","") }}%</span>{% endif %}</div>
+  <div class="seg mid" style="width:{{ v3 }}%">{% if v3 > 5 %}<span>{{ "%.1f"|format(v3)|replace(".0","") }}%</span>{% endif %}</div>
+  <div class="seg high" style="width:{{ v4 }}%">{% if v4 > 5 %}<span>{{ "%.1f"|format(v4)|replace(".0","") }}%</span>{% endif %}</div>
+  <div class="seg very-high" style="width:{{ v5 }}%">{% if v5 > 5 %}<span>{{ "%.1f"|format(v5)|replace(".0","") }}%</span>{% endif %}</div>
+</div>
+{% endif %}
+{% endmacro %}

@@ -1,0 +1,208 @@
+<!-- templates/report/organizational_effectiveness/executive-summary.html -->
+<section class="w-full bg-white px-10 py-8 space-y-6 report-section">
+
+  <!-- 헤더 블록 - 일관성 보장 -->
+  <header class="flex items-center justify-between gap-4">
+    <div>
+      <h1 class="text-xl font-semibold text-slate-900 mt-1">
+        조직 효과성 핵심 진단 결과
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        {{ report.organization_name or report.org_name or "업로드 데이터" }}
+      </p>
+    </div>
+    <div class="text-xs text-slate-400">
+      {% if report.report_date %}{{ report.report_date }}{% endif %}
+    </div>
+  </header>
+
+  <!-- 안전한 AI 객체 추출 -->
+  {% set ai = ai_result or (report.summary.ai if report.summary is defined and report.summary.ai is defined else {}) %}
+
+  <!-- 1. 진단 모델 소개 -->
+  <section class="space-y-4">
+    <h2 class="text-base font-semibold text-slate-900">진단 모델 소개</h2>
+
+
+    <!-- 설명 텍스트 -->
+    <div class="rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-4 text-sm leading-relaxed text-slate-700">
+      입력(Input)–과정(Process)–산출(Output)로 이어지는 IPO 프레임과 SKMS 운영 원칙을 결합해
+      조직의 자원 투입, 실행 프로세스, 결과 및 구성원 경험을 한 번에 진단하도록 설계
+    </div>
+
+    <!-- IPO 영역별 상세 설명 -->
+    <div class="grid grid-cols-3 gap-3">
+      <!-- Input 설명 -->
+      <div class="rounded-lg border border-blue-100 bg-blue-50/50 px-3 py-3">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-6 h-6 rounded bg-blue-100 flex items-center justify-center">
+            <span class="text-blue-600 text-xs font-bold">I</span>
+          </div>
+          <h3 class="text-sm font-semibold text-blue-700">Input (투입)</h3>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          조직이 성과를 창출하기 위해 투입하는 자원과 역량을 평가합니다.
+          전략의 명확성, 조직구조의 적정성, 역할과 책임의 정의 수준을 확인합니다.
+        </p>
+      </div>
+
+      <!-- Process 설명 -->
+      <div class="rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-3">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-6 h-6 rounded bg-emerald-100 flex items-center justify-center">
+            <span class="text-emerald-600 text-xs font-bold">P</span>
+          </div>
+          <h3 class="text-sm font-semibold text-emerald-700">Process (과정)</h3>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          투입된 자원이 성과로 전환되는 실행 과정을 진단합니다.
+          리더십 발휘, 팀 협업, 의사소통, 업무 프로세스의 효율성을 측정합니다.
+        </p>
+      </div>
+
+      <!-- Output 설명 -->
+      <div class="rounded-lg border border-orange-100 bg-orange-50/50 px-3 py-3">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-6 h-6 rounded bg-orange-100 flex items-center justify-center">
+            <span class="text-orange-600 text-xs font-bold">O</span>
+          </div>
+          <h3 class="text-sm font-semibold text-orange-700">Output (산출)</h3>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          조직이 달성한 결과와 구성원의 경험을 종합적으로 평가합니다.
+          성과 달성, 구성원 몰입, 조직문화, 지속가능성을 측정합니다.
+        </p>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- 2. 조직 맥락 분석 -->
+  <section class="space-y-3">
+    <h2 class="text-base font-semibold text-slate-900">조직 맥락 분석</h2>
+    <div class="rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-4 min-h-[110px] text-sm leading-relaxed text-slate-700">
+      {% if ai and ("org_context" in ai) and ai["org_context"] %}
+        {{ ai["org_context"] }}
+      {% else %}
+        응답 조직의 컨텍스트 정보가 없습니다. 먼저 'AI 해석 생성하기'를 실행해 주세요.
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- 3. IPO 영역별 조직효과성 점수 (가로배치, PDF 안전) -->
+  <section class="space-y-4 mt-6">
+    <h2 class="text-base font-semibold text-slate-900">IPO 영역별 분석</h2>
+
+    {% set ipo_cards = report.summary.ipo_cards if report.summary is defined and report.summary.ipo_cards is defined else [] %}
+
+    {% if ipo_cards %}
+      <div class="ipo-score-row" style="display:flex; gap:1rem; align-items:stretch; page-break-inside:avoid; break-inside:avoid;">
+        {% for card in ipo_cards %}
+          {% set cid = (card.id or card.title or '').lower() %}
+          {% if 'input' in cid %}
+            {% set bg = 'background:linear-gradient(160deg,#e3ecff 0%,#ffffff 35%);border-left:4px solid #0f4fa8;' %}
+          {% elif 'process' in cid %}
+            {% set bg = 'background:linear-gradient(160deg,#e6fff5 0%,#ffffff 35%);border-left:4px solid #10b981;' %}
+          {% else %}
+            {% set bg = 'background:linear-gradient(160deg,#fff2e6 0%,#ffffff 35%);border-left:4px solid #f97316;' %}
+          {% endif %}
+          <div
+            class="ipo-score-card rounded-xl px-6 py-4"
+            style="flex:1 1 0; display:flex; flex-direction:column; justify-content:space-between; {{ bg }} page-break-inside:avoid; break-inside:avoid;"
+          >
+            <div>
+              <p class="text-[0.65rem] font-semibold tracking-wide text-slate-500 uppercase">{{ card.title }}</p>
+              <p class="mt-2 text-3xl font-semibold text-slate-900">
+                {{ "%.1f"|format(card.score) if card.score is not none else "-" }}
+              </p>
+            </div>
+            <p class="mt-3 text-[0.68rem] text-slate-600 leading-snug">
+              {{ card.desc }}
+            </p>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- IPO + SKMS 관점에서의 해석 (IPO 카드 바로 아래에 통합) -->
+      <div class="mt-4 rounded-xl border border-slate-100 bg-white px-5 py-4 min-h-[110px] text-sm leading-relaxed text-slate-700">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-5 h-5 rounded bg-blue-100 flex items-center justify-center">
+            <span class="text-blue-600 text-xs font-bold">📊</span>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-800">IPO + SKMS 관점에서의 해석</h3>
+        </div>
+        <div class="text-sm leading-relaxed text-slate-700">
+          {% if ai and ("score" in ai) and ai["score"] %}
+            {{ ai["score"] }}
+          {% else %}
+            IPO 관점의 핵심 해석이 아직 생성되어 있지 않습니다. 'AI 해석 생성하기'를 먼저 실행해 주세요.
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <p class="text-xs text-slate-400">IPO 카드 정보가 없습니다.</p>
+    {% endif %}
+  </section>
+
+  <!-- 페이지 브레이크 전 진단 종합 분석 -->
+  <div style="page-break-before: auto; break-before: auto; margin-top: 2rem;"></div>
+
+  <!-- 4. 진단 종합 분석 (강조된 결론 섹션) -->
+  <section class="space-y-4 mt-8" style="page-break-inside: avoid; break-inside: avoid;">
+    <!-- 강조된 헤더 -->
+    <div class="relative">
+      <div class="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl opacity-10"></div>
+      <div class="relative bg-white rounded-2xl border-2 border-gradient-to-r from-blue-200 to-purple-200 px-6 py-4">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              진단 종합 분석
+            </h2>
+          </div>
+        </div>
+
+        <!-- 강조된 콘텐츠 박스 -->
+        <div class="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl border border-slate-200 p-6 mt-4 shadow-inner">
+          <div class="text-sm leading-relaxed text-slate-800">
+            {% if ai and ("writer" in ai) and ai["writer"] %}
+              <div class="prose prose-sm prose-slate max-w-none">
+                <div class="whitespace-pre-line font-medium">
+                  {{ ai["writer"] }}
+                </div>
+              </div>
+            {% else %}
+              <div class="text-center py-8">
+                <div class="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                  <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                  </svg>
+                </div>
+                <h3 class="font-semibold text-slate-900 mb-2">AI 종합 분석이 필요합니다</h3>
+                <p class="text-sm text-slate-600 mb-4">
+                  더 깊이 있는 임원용 인사이트를 위해 'AI 해석 생성하기' 기능을 먼저 실행해 주세요.
+                </p>
+                <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 text-xs rounded-lg border border-blue-200">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>AI 해석은 리포트 미리보기 페이지에서 생성할 수 있습니다</span>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</section>
+
+<footer class="report-page-footer">
+  <span class="page-number"></span>
+</footer>

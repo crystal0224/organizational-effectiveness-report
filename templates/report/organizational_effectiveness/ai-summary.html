@@ -1,0 +1,35 @@
+{# templates/report/organizational_effectiveness/ai-summary.html #}
+{% set ai = report.summary.ai %}
+{% if ai %}
+<div class="page --ai-summary">
+  <h1 class="section-title">AI 기반 해석 요약</h1>
+
+  <div class="ai-block">
+    <h2>1. IPO 점수 해석</h2>
+    <div class="ai-text">
+      {{ ai.score | safe }}
+    </div>
+  </div>
+
+  <div class="ai-block">
+    <h2>2. 문항별 높낮이</h2>
+    <div class="ai-text">
+      {{ ai.items | safe }}
+    </div>
+  </div>
+
+  <div class="ai-block">
+    <h2>3. 임원용 요약(초안)</h2>
+    <div class="ai-text">
+      {{ ai.writer | safe }}
+    </div>
+  </div>
+
+  <div class="ai-block">
+    <h2>4. 리뷰 결과</h2>
+    <div class="ai-text">
+      {{ ai.reviewer | safe }}
+    </div>
+  </div>
+</div>
+{% endif %}

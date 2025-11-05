@@ -1,0 +1,45 @@
+/* 기본 브랜딩 색상 설정 */
+:root {
+  /* Primary Colors */
+  --primary-color: #0f4fa8;
+  --primary-light: #3b82f6;
+  --primary-dark: #1e40af;
+
+  /* Secondary Colors */
+  --secondary-color: #10b981;
+  --secondary-light: #34d399;
+  --secondary-dark: #059669;
+
+  /* Accent Colors */
+  --accent-color: #f97316;
+  --accent-light: #fb923c;
+  --accent-dark: #ea580c;
+
+  /* Text Colors */
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-light: #9ca3af;
+
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-accent: #f3f4f6;
+
+  /* Border Colors */
+  --border-light: #e5e7eb;
+  --border-medium: #d1d5db;
+  --border-dark: #9ca3af;
+}
+
+/* 브랜딩 적용 클래스 */
+.brand-primary { color: var(--primary-color); }
+.brand-secondary { color: var(--secondary-color); }
+.brand-accent { color: var(--accent-color); }
+
+.bg-brand-primary { background-color: var(--primary-color); }
+.bg-brand-secondary { background-color: var(--secondary-color); }
+.bg-brand-accent { background-color: var(--accent-color); }
+
+.border-brand-primary { border-color: var(--primary-color); }
+.border-brand-secondary { border-color: var(--secondary-color); }
+.border-brand-accent { border-color: var(--accent-color); }

@@ -1,0 +1,241 @@
+<!-- templates/report/organizational_effectiveness/overview.html -->
+<section class="w-full bg-white px-10 py-8 space-y-6 report-section">
+
+  <!-- 헤더 -->
+  <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <p class="text-xs uppercase tracking-wide text-slate-400">Report Overview</p>
+      <h1 class="text-xl font-semibold text-slate-900 mt-1">
+        조직 효과성 진단 개요
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        {{ report.organization_name or report.org_name or "업로드 데이터" }}
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+        최신 리포트
+      </span>
+      <span class="text-xs text-slate-400">
+        {% if report.report_date %}{{ report.report_date }}{% endif %}
+      </span>
+    </div>
+  </header>
+
+  <!-- 1. IPO 카드 3개 -->
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-base font-semibold text-slate-900">IPO 영역별 조직효과성 점수</h2>
+    </div>
+    <div class="h-px w-full bg-slate-200"></div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {% for card in report.ipo_cards %}
+        <div
+          class="rounded-2xl p-6 shadow-sm border border-slate-100 bg-gradient-to-br
+            {% if card.id == 'input' %} from-sky-50 to-white
+            {% elif card.id == 'process' %} from-indigo-50 to-white
+            {% else %} from-fuchsia-50 to-white {% endif %}">
+          <p class="text-sm text-slate-500 mb-3">{{ card.title }}</p>
+          <p class="text-4xl font-semibold tracking-tight
+                    {% if card.id == 'output' %} text-fuchsia-500
+                    {% elif card.id == 'process' %} text-indigo-500
+                    {% else %} text-sky-500 {% endif %}">
+            {{ "%.1f"|format(card.score) if card.score is not none else "-" }}
+          </p>
+          <span class="inline-flex mt-4 px-3 py-1 rounded-full bg-white/80 text-xs font-medium text-slate-700 shadow-sm">
+            {{ card.grade }}
+          </span>
+          {% if card.desc %}
+            <p class="text-xs text-slate-400 mt-3 leading-relaxed">{{ card.desc }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- 2. 선차트 -->
+  {% if report.score_distribution and report.score_distribution.labels and report.score_distribution.series %}
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-base font-semibold text-slate-900">진단 영역/항목별 점수 분포</h2>
+    </div>
+    <div class="h-px w-full bg-slate-200"></div>
+
+    <div class="w-full bg-white rounded-xl border border-slate-100 p-4 chart-responsive score-distribution-chart">
+      <div class="relative h-[300px] chart-container">
+        <canvas id="scoreLineChart"></canvas>
+      </div>
+      <p class="mt-4 text-center text-xs text-slate-400 flex items-center justify-center gap-4">
+        <span class="inline-flex items-center gap-2">
+          <span class="w-8 h-[2px] bg-slate-300 inline-block"></span> 벤치마크
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <span class="w-8 h-[2px] bg-blue-500 inline-block"></span> 우리 조직
+        </span>
+      </p>
+    </div>
+
+    <!-- Chart.js CDN (브라우저+Playwright 모두에서 먹게) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      (function () {
+        const labels = {{ report.score_distribution.labels | tojson }};
+        const benchmark = {{ report.score_distribution.series[0].data | tojson }};
+        const ours = {{ report.score_distribution.series[1].data | tojson }};
+
+        const ctx = document.getElementById("scoreLineChart");
+        if (ctx) {
+          new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: "벤치마크",
+                  data: benchmark,
+                  borderColor: "rgba(148,163,184,1)",
+                  backgroundColor: "rgba(148,163,184,0.05)",
+                  pointRadius: 3,
+                  pointBackgroundColor: "rgba(148,163,184,1)",
+                  tension: 0.35,
+                },
+                {
+                  label: "우리 조직",
+                  data: ours,
+                  borderColor: "rgba(59,130,246,1)",
+                  backgroundColor: "rgba(59,130,246,0.05)",
+                  pointRadius: 4,
+                  pointBackgroundColor: "rgba(59,130,246,1)",
+                  tension: 0.35,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              devicePixelRatio: 3, // PDF 품질 최대화 (2→3 향상)
+              animation: false, // PDF 렌더링 시 애니메이션 비활성화
+              font: {
+                family: "'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif"
+              },
+              scales: {
+                y: {
+                  min: 0,
+                  max: 5,
+                  grid: {
+                    color: "rgba(148,163,184,0.15)",
+                    drawBorder: false,
+                  },
+                  ticks: {
+                    stepSize: 1,
+                    font: { size: 10 },
+                    color: '#374151'
+                  },
+                },
+                x: {
+                  grid: { display: false },
+                  ticks: {
+                    maxRotation: 60,
+                    minRotation: 40,
+                    color: "#374151",
+                    font: { size: 10, weight: 'normal' },
+                  },
+                },
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true },
+              },
+            },
+          });
+        }
+      })();
+    </script>
+  </section>
+  {% else %}
+  <!-- 차트 데이터가 없을 때 표시할 대체 콘텐츠 -->
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-base font-semibold text-slate-900">진단 영역/항목별 점수 분포</h2>
+    </div>
+    <div class="h-px w-full bg-slate-200"></div>
+
+    <div class="w-full bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 p-8">
+      <div class="text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+          <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-slate-900 mb-2">차트 데이터 없음</h3>
+        <p class="text-sm text-slate-600">
+          진단 영역별 점수 분포 데이터가 아직 준비되지 않았습니다.
+        </p>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- 3. 설명 카드 3개 -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
+    <!-- 진단 목적 -->
+    <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+      <h3 class="text-sm font-semibold text-slate-900 mb-2">1. 진단 목적</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">
+        {{ report.overview.purpose or "조직의 현재 운영 수준을 다각도로 파악하고, 개선 우선순위를 제시하기 위한 진단입니다." }}
+      </p>
+    </div>
+
+    <!-- 진단 배경 -->
+    <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+      <h3 class="text-sm font-semibold text-slate-900 mb-2">2. 진단 배경</h3>
+      <ul class="space-y-1.5 text-sm text-slate-600">
+        {% for bg in report.overview.background %}
+          <li class="flex gap-2">
+            <span class="mt-1 h-1.5 w-1.5 rounded-full bg-slate-300"></span>
+            <span>{{ bg }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- 진단 모델 -->
+    <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+      <h3 class="text-sm font-semibold text-slate-900 mb-2">3. 진단 모델</h3>
+      <p class="text-sm text-slate-600 mb-2">
+        {{ report.overview.model_desc or "IPO(Input-Process-Output) 프레임을 기반으로 설계하였습니다." }}
+      </p>
+      <div class="space-y-1.5">
+        {% for point in report.overview.model_points %}
+          <div class="flex gap-2 items-start">
+            <span class="mt-[3px] inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[10px] font-semibold text-white">
+              {{ loop.index }}
+            </span>
+            <p class="text-sm text-slate-600 leading-snug">{{ point }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 응답 현황 -->
+  <section class="space-y-3">
+    <h2 class="text-base font-semibold text-slate-900">응답 현황</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-slate-50 rounded-lg p-4 border border-slate-100">
+        <div class="text-xs text-slate-500 mb-1">총 응답 수</div>
+        <div class="text-xl font-bold text-slate-900">{{ report.respondents or 0 }}명</div>
+      </div>
+      <div class="bg-slate-50 rounded-lg p-4 border border-slate-100">
+        <div class="text-xs text-slate-500 mb-1">집계 기준</div>
+        <div class="text-sm font-medium text-slate-900">업로드 파일 기준</div>
+      </div>
+      <div class="bg-slate-50 rounded-lg p-4 border border-slate-100">
+        <div class="text-xs text-slate-500 mb-1">리포트 버전</div>
+        <div class="text-sm font-medium text-slate-900"></div>
+      </div>
+    </div>
+  </section>
+
+</section>

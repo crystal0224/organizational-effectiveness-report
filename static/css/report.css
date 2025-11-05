@@ -1,0 +1,270 @@
+/* ================================
+   1) 화면(A4 미리보기) 전용 래퍼
+   ================================ */
+.report-screen {
+  background: #e5e7eb;
+  padding: 1.5rem 0;
+  min-height: 100vh;
+}
+
+.report-page {
+  width: 210mm;              /* A4 width */
+  min-height: 297mm;         /* A4 height */
+  margin: 0 auto 2.5rem auto; /* 페이지 간격 증가 */
+  background: #ffffff;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12); /* 그림자 강화 */
+  border: 2px solid rgba(99, 102, 241, 0.1); /* 페이지 테두리 강화 */
+  border-radius: 8px; /* 모서리 둥글게 */
+  box-sizing: border-box;
+  padding: 20mm 18mm 25mm 18mm; /* 하단 여백 증가로 페이지 번호 겹침 방지 */
+  position: relative;
+}
+
+/* 페이지 구분 강화를 위한 상단 표시 */
+.report-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+  border-radius: 8px 8px 0 0;
+}
+
+/* 페이지 번호 영역 강화 */
+.report-page::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  width: 8px;
+  height: 8px;
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 50%;
+}
+
+/* 템플릿 안에서 기존에 쓰던 .page 클래스도 남겨둔다 (호환성) */
+.page {
+  position: relative;
+  min-height: 297mm;
+  background: #ffffff;
+  box-sizing: border-box;
+  padding-bottom: 24mm; /* footer 영역 확보 */
+}
+
+/* ================================
+   2) PDF용 페이지 카운터 및 페이지네이션
+   ================================ */
+@page {
+  margin: 15mm;
+  size: A4;
+}
+
+body {
+  counter-reset: page;
+}
+
+/* 강화된 페이지 분할 */
+.report-page {
+  page-break-after: always;
+  break-after: page;
+}
+
+.report-page:last-child {
+  page-break-after: auto;
+  break-after: auto;
+}
+
+/* 페이지 번호 푸터 */
+.report-page-footer {
+  position: absolute;
+  bottom: 8mm;
+  left: 18mm;
+  right: 18mm;
+  font-size: 0.65rem;
+  color: #94a3b8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding-top: 8px;
+  z-index: 1000;
+  background: white;
+}
+
+.report-page-footer .page-number {
+  font-weight: 300;
+  color: #A0A0A0;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+}
+
+.report-page-footer .footer-text {
+  display: none !important; /* 좌측 텍스트 숨김 */
+}
+
+/* 페이지 번호만 가운데 정렬 강화 */
+.report-page-footer {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.report-page-footer .footer-text {
+  display: none !important;
+}
+
+.report-page-footer .page-number {
+  text-align: center;
+  width: 100%;
+  display: block !important;
+}
+
+/* 페이지 구분 강화 */
+.report-page {
+  position: relative;
+}
+
+.report-page::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+}
+
+/* ================================
+   3) 페이지 나누기 유틸
+   ================================ */
+.page-break {
+  page-break-before: always;
+  break-before: page;
+}
+.page-avoid {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* ================================
+   4) 화면에서의 보정
+   ================================ */
+@media screen {
+  .page-break {
+    margin-top: 3rem;
+  }
+}
+
+/* ================================
+   5) Playwright(=print)에서의 보정
+   ================================ */
+@media print {
+  .report-screen {
+    background: #ffffff !important;
+    padding: 0 !important;
+  }
+  .report-page {
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    width: auto;
+    min-height: auto;
+    padding: 15mm 20mm 25mm 20mm; /* PDF 여백 조정 - 하단 여백 증가 */
+  }
+
+  /* 페이지 번호 PDF 전용 스타일 */
+  .report-page-footer {
+    position: absolute;
+    bottom: 8mm;
+    left: 18mm;
+    right: 18mm;
+    text-align: center;
+    font-size: 9pt;
+    color: #666;
+    z-index: 100;
+  }
+
+  /* 차트 크기 조정 */
+  canvas {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* 차트 컨테이너 크기 제한 */
+  .chart-container {
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* 점수 분포 차트 영역 크기 조정 */
+  .score-distribution-chart {
+    max-width: 180mm !important; /* A4 너비에 맞게 조정 */
+    margin: 0 auto;
+  }
+}
+
+/* IPO 카드가 PDF에서 세로로 떨어지는 것 방지 */
+.ipo-score-row {
+  display: flex;
+  gap: 0.9rem;
+  align-items: stretch;
+}
+.ipo-score-card {
+  flex: 1 1 0;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* 인쇄/스크린 공통으로 유지 */
+@media print {
+  .ipo-score-row {
+    display: flex !important;
+  }
+}
+
+/* 차트 반응형 크기 조정 */
+.chart-responsive {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* 모든 차트 컨테이너 통합 스타일 */
+.chart-container,
+.chart-wrapper,
+.radar-chart-container,
+.score-chart-container {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  margin: 0 auto;
+}
+
+/* 화면에서 차트 최대 너비 제한 */
+@media screen {
+  .chart-responsive,
+  .chart-container,
+  .chart-wrapper {
+    max-width: 750px; /* 화면에서 적절한 크기 */
+  }
+}
+
+@media print {
+  .chart-responsive {
+    max-width: 170mm !important; /* PDF에서 더 안전한 너비 */
+    margin: 0 auto;
+  }
+
+  /* 모든 차트 관련 요소 크기 제한 */
+  .chart-container,
+  .chart-wrapper,
+  .radar-chart-container,
+  .score-chart-container {
+    max-width: 170mm !important;
+    margin: 0 auto;
+  }
+}
+

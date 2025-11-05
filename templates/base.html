@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>{% block title %}조직 효과성 리포트{% endblock %}</title>
+
+  {# 우선순위 높은 폰트 로딩 최적화 #}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  {# 1) Streamlit 미리보기 / Playwright PDF 렌더링: Tailwind CDN 사용 #}
+  {% if use_tailwind %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* 폰트 폴백 체계 강화 및 렌더링 최적화 */
+      body, .report-content {
+        font-family: 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+        font-feature-settings: 'kern' 1; /* 커닝 활성화 */
+        text-rendering: optimizeLegibility; /* 텍스트 렌더링 최적화 */
+        background: #f3f4f6;
+      }
+      .page { background: #fff; }
+
+      /* A4 PDF 최적화 레이아웃 */
+      @page {
+        size: A4;
+        margin: 20mm 15mm;
+      }
+
+      @media print {
+        body {
+          font-size: 12px;
+          line-height: 1.4;
+          color: #000;
+          background: #fff;
+        }
+
+        /* 자연스러운 페이지 흐름 허용 */
+        * {
+          box-sizing: border-box;
+        }
+
+        /* 섹션별 페이지 분할 제어 */
+        .report-section {
+          page-break-after: auto;
+          break-after: auto;
+          overflow: visible !important;
+          max-height: none !important;
+          min-height: auto !important;
+          height: auto !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          position: relative;
+        }
+
+        /* 진단 섹션 전문적 레이아웃 최적화 */
+        .diagnostic-page-first,
+        .diagnostic-page-second {
+          height: auto !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          overflow: visible !important;
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+          page-break-after: always !important;
+          break-after: always !important;
+        }
+
+        /* 하위 콘텐츠 유연성 확보 */
+        .diagnostic-page-first .subcategory-grid,
+        .diagnostic-page-second .subcategory-grid {
+          page-break-inside: auto;
+          break-inside: auto;
+        }
+
+        /* 개별 서브카테고리 항목 최적화 */
+        .subcategory-item {
+          page-break-inside: avoid;
+          break-inside: avoid;
+          margin-bottom: 1rem;
+          display: block;
+        }
+
+        /* 진단 상세 헤더와 콘텐츠 함께 유지 */
+        .diagnostic-header + * {
+          page-break-before: avoid;
+          break-before: avoid;
+        }
+
+        /* 강제 페이지 브레이크 */
+        .page-break-always {
+          page-break-before: always !important;
+          break-before: always !important;
+        }
+
+        /* 페이지 브레이크 방지 (선택적 적용) */
+        .keep-together {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+
+        /* 제목과 콘텐츠를 함께 유지 */
+        h1, h2, h3, h4, h5, h6 {
+          page-break-after: avoid;
+          break-after: avoid;
+        }
+
+        /* 차트는 함께 유지 */
+        canvas, .chart-container {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+
+        /* 차트 컨테이너 크기 제한 및 반응형 */
+        .chart-container, .chart-responsive {
+          max-width: 100% !important;
+          width: 100% !important;
+          overflow: hidden !important;
+        }
+
+        canvas {
+          max-width: 100% !important;
+          width: 100% !important;
+          height: 280px !important;
+          image-rendering: auto !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+        }
+
+        /* 작은 요소들만 페이지 분할 방지 */
+        .item-card, article {
+          page-break-inside: avoid;
+          break-inside: avoid;
+          margin-bottom: 8px;
+        }
+
+        /* 그리드는 자연스럽게 분할 허용 */
+        .grid {
+          page-break-inside: auto;
+          break-inside: auto;
+        }
+
+        /* 감성분석 카드 PDF 레이아웃 - Flexbox 사용 */
+        .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+          display: flex !important;
+          flex-wrap: wrap !important;
+          gap: 1rem !important;
+          page-break-inside: auto;
+          break-inside: auto;
+          margin: 0 !important;
+        }
+
+        /* 감성분석 개별 카드 - PDF에서 정확한 3열 배치 */
+        .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 > div {
+          page-break-inside: avoid;
+          break-inside: avoid;
+          width: calc(33.333% - 0.67rem) !important;
+          flex: 0 0 calc(33.333% - 0.67rem) !important;
+          max-width: calc(33.333% - 0.67rem) !important;
+          box-sizing: border-box !important;
+        }
+
+        /* 불필요한 여백 제거 */
+        .space-y-6 > * + * {
+          margin-top: 1rem !important;
+        }
+
+        /* 페이지 번호 스타일 - 강제 중앙 정렬 */
+        .page-number {
+          text-align: center !important;
+          display: block !important;
+          width: 100% !important;
+          margin: 0 auto !important;
+        }
+        .page-number::before {
+          content: "- " !important;
+        }
+        .page-number::after {
+          content: " -" !important;
+        }
+
+        /* 페이지 번호 푸터 중앙정렬 */
+        .report-page-footer {
+          text-align: center !important;
+          width: 100% !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          position: relative !important;
+        }
+
+        .report-page-footer .page-number {
+          display: block !important;
+          text-align: center !important;
+          margin: 0 auto !important;
+          width: 100% !important;
+          position: relative !important;
+        }
+
+        /* 모든 푸터 요소 중앙정렬 강제 */
+        footer.report-page-footer {
+          text-align: center !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          width: 100% !important;
+        }
+
+        footer.report-page-footer * {
+          text-align: center !important;
+        }
+      }
+
+      /* 일반 화면용 페이지네이션 */
+      .report-section {
+        overflow: visible;
+      }
+
+      /* 차트 반응형 설정 (일반 화면용) */
+      .chart-container, .chart-responsive {
+        max-width: 100%;
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+      }
+
+      canvas {
+        max-width: 100%;
+        width: 100% !important;
+        height: 280px !important;
+        image-rendering: auto;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* 차트 상위 컨테이너 크기 제한 */
+      .bg-white.rounded-lg, .bg-white.rounded-xl {
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      /* 감성분석 카드 레이아웃 고정 - Flexbox 사용 */
+      .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 1.5rem !important;
+      }
+
+      .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 > div {
+        width: calc(33.333% - 1rem) !important;
+        flex: 0 0 calc(33.333% - 1rem) !important;
+        max-width: calc(33.333% - 1rem) !important;
+        box-sizing: border-box !important;
+      }
+
+      /* 모바일에서는 단일 컬럼 */
+      @media (max-width: 768px) {
+        .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 > div {
+          width: 100% !important;
+          flex: 0 0 100% !important;
+          max-width: 100% !important;
+        }
+      }
+
+      /* 태블릿에서는 2컬럼 */
+      @media (min-width: 769px) and (max-width: 1024px) {
+        .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 > div {
+          width: calc(50% - 0.75rem) !important;
+          flex: 0 0 calc(50% - 0.75rem) !important;
+          max-width: calc(50% - 0.75rem) !important;
+        }
+      }
+
+      /* PDF 전용 추가 최적화 */
+      @media print {
+        .page-number {
+          visibility: visible !important;
+          display: block !important;
+        }
+
+        /* Playwright 호환성 개선 */
+        .report-page-footer {
+          position: fixed !important;
+          bottom: 10mm !important;
+          width: 100% !important;
+          text-align: center !important;
+          font-size: 10px !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+        }
+
+        .report-page-footer .page-number {
+          display: block !important;
+          text-align: center !important;
+          margin: 0 auto !important;
+        }
+
+        /* 페이지 번호 강제 표시 */
+        .page-number::before {
+          content: "- " !important;
+        }
+        .page-number::after {
+          content: " -" !important;
+        }
+
+        /* 표지 페이지 PDF 최적화 - 전체 A4 페이지 활용 */
+        .cover-page {
+          width: 100% !important;
+          height: 297mm !important;
+          min-height: 297mm !important;
+          max-height: 297mm !important;
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: center !important;
+          align-items: center !important;
+          padding: 20mm !important;
+          box-sizing: border-box !important;
+          page-break-after: always !important;
+          break-after: always !important;
+          position: relative !important;
+        }
+
+        .cover-content {
+          margin: 0 !important;
+          padding: 0 !important;
+          text-align: center !important;
+          max-width: 100% !important;
+          width: 100% !important;
+        }
+
+        /* 표지 페이지 타이틀 크기 고정 */
+        .cover-page h1 {
+          font-size: 48px !important;
+          line-height: 1.2 !important;
+          margin: 20px 0 !important;
+        }
+
+        .cover-page .text-xl {
+          font-size: 24px !important;
+          line-height: 1.4 !important;
+        }
+
+        .cover-page .text-3xl {
+          font-size: 36px !important;
+          line-height: 1.3 !important;
+        }
+      }
+    </style>
+  {% else %}
+    {# 2) 서버에서 HTML만 만들고, 외부 렌더러가 스타일을 입히는 경우 #}
+    {% if inline_css %}
+    <style>
+    {{ inline_css }}
+    </style>
+    {% endif %}
+  {% endif %}
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="antialiased">
+  {% block content %}{% endblock %}
+
+  <script>
+    // 페이지 번호 중복 제거 및 올바른 순서 설정
+    document.addEventListener('DOMContentLoaded', function() {
+      const pageNumbers = Array.from(document.querySelectorAll('.page-number'));
+      console.log('총 페이지 번호 요소 수:', pageNumbers.length);
+
+      // 표지 페이지 제외하고 실제 리포트 섹션만 찾기
+      const validSections = [];
+      const processedSections = new Set();
+
+      pageNumbers.forEach((pageNumber, index) => {
+        // 부모 섹션 찾기
+        const section = pageNumber.closest('.report-section, .page, section, .cover-page');
+
+        if (section) {
+          // 표지 페이지는 페이지 번호에서 제외
+          if (section.classList.contains('cover-page')) {
+            pageNumber.remove();
+            return;
+          }
+
+          // 섹션 고유 식별자 생성
+          const sectionId = section.id ||
+                           section.dataset.section ||
+                           section.className + '_' + index;
+
+          // 이미 처리된 섹션인지 확인
+          if (!processedSections.has(sectionId)) {
+            // 섹션에 실제 내용이 있는지 확인
+            const textContent = section.textContent.trim();
+            if (textContent.length > 100) { // 최소 100자 이상의 내용
+              processedSections.add(sectionId);
+              validSections.push({
+                element: pageNumber,
+                section: section,
+                id: sectionId
+              });
+            } else {
+              pageNumber.remove();
+            }
+          } else {
+            // 중복 섹션의 페이지 번호 제거
+            pageNumber.remove();
+          }
+        } else {
+          // 섹션이 없는 페이지 번호 제거
+          pageNumber.remove();
+        }
+      });
+
+      console.log('유효한 섹션 수:', validSections.length);
+
+      // 유효한 섹션들에만 순서대로 페이지 번호 설정
+      validSections.forEach((item, index) => {
+        const pageNum = String(index + 1).padStart(2, '0');
+        item.element.textContent = pageNum;
+        console.log(`페이지 ${pageNum}: ${item.id}`);
+      });
+    });
+  </script>
+</body>
+</html>

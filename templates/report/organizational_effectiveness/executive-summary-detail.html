@@ -1,0 +1,236 @@
+<!-- templates/report/organizational_effectiveness/executive-summary-detail.html -->
+<section class="w-full bg-white px-10 py-8 space-y-8">
+
+  <!-- 1페이지와 동일한 헤더 블록 -->
+  <header class="flex items-center justify-between gap-4">
+    <div>
+      <h1 class="text-xl font-semibold text-slate-900 mt-1">
+        조직 효과성 핵심 진단 결과
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        {{ report.organization_name or report.org_name or "업로드 데이터" }}
+      </p>
+    </div>
+    {% if report.report_date %}
+    <div class="text-xs text-slate-400">
+      {{ report.report_date }}
+    </div>
+    {% endif %}
+  </header>
+
+  <!-- 안전한 AI / 차트 데이터 추출 -->
+  {% set ai = ai_result or (report.summary.ai if report.summary is defined and report.summary.ai is defined else {}) %}
+  {% set dist = (report.summary.score_distribution if report.summary is defined and report.summary.score_distribution is defined else {}) %}
+  {% set labels = dist.labels or [] %}
+  {% set series = dist.series or [] %}
+  {% set segments = dist.segments or [] %}
+
+  <!-- 1. 진단 영역/항목별 점수 분포 (Chart.js + IPO 구간 표시) -->
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-base font-semibold text-slate-900">
+        {{ dist.title or "진단 영역/항목별 점수 분포" }}
+      </h2>
+    </div>
+    <div class="h-px w-full bg-slate-200"></div>
+
+    <div class="w-full bg-white rounded-xl border border-slate-100 p-4 chart-responsive score-distribution-chart">
+      <div class="relative h-[280px] chart-container">
+        <canvas id="summaryScoreLineChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 문항 단위 분석 (개선된 AI 가드) -->
+  <section class="space-y-3">
+    <h2 class="text-base font-semibold text-slate-900">문항 단위 분석</h2>
+    <div class="rounded-xl border border-slate-100 bg-white px-5 py-4 min-h-[120px] text-sm leading-relaxed text-slate-700">
+      {% if ai and ("items" in ai) and ai["items"] %}
+        <div class="whitespace-pre-line">
+          {{ ai["items"] }}
+        </div>
+      {% else %}
+        문항 단위로 개선이 필요한 요소에 대한 AI 분석이 없습니다. 'AI 해석 생성하기'에서 문항별 개선 필요 항목을 생성해 주세요.
+      {% endif %}
+    </div>
+  </section>
+
+  <footer class="report-page-footer mt-6">
+    <span class="page-number"></span>
+  </footer>
+</section>
+
+<!-- Chart.js 구현 (IPO 구간 렌더링 강화) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function () {
+  const labels   = {{ labels | tojson }};
+  const series   = {{ series | tojson }};
+  const segments = {{ segments | tojson }};
+
+  if (!labels || !labels.length) return;
+
+  const bench = (series.length > 0) ? series[0] : {name: "벤치마크", data: []};
+  const ours  = (series.length > 1) ? series[1] : {name: "우리 조직", data: []};
+
+  const allVals = (bench.data || []).concat(ours.data || []);
+  const hasData = allVals.length > 0;
+
+  // 개선된 y축 스케일링 (데이터 차이 부각)
+  let yMin = 0, yMax = 5;
+  if (hasData) {
+    const rawMin = Math.min.apply(null, allVals);
+    const rawMax = Math.max.apply(null, allVals);
+    yMin = Math.max(Number((rawMin - 0.35).toFixed(2)), 0);
+    yMax = Math.min(Number((rawMax + 0.15).toFixed(2)), 5);
+  }
+
+  const ctx = document.getElementById("summaryScoreLineChart");
+  if (!ctx) return;
+
+  // IPO 배경 플러그인 (전역 등록)
+  const ipoBGPlugin = {
+    id: "ipoBGPlugin",
+    beforeDraw(chart) {
+      const segments = chart.options.plugins.ipoBGPlugin?.segments || [];
+      if (!segments.length) return;
+
+      const {ctx, chartArea, scales} = chart;
+      if (!chartArea || !scales.x) return;
+
+      const {top, bottom, left, right} = chartArea;
+      const x = scales.x;
+
+      ctx.save();
+      console.log('IPO segments:', segments); // 디버깅용
+
+      segments.forEach((seg, idx) => {
+        const xStart = Math.max(x.getPixelForValue(seg.from), left);
+        const xEnd = Math.min(x.getPixelForValue(seg.to + 1), right); // +1로 전체 구간 포함
+        const width = Math.max(xEnd - xStart, 0);
+
+        console.log(`Segment ${seg.name}: from=${seg.from}, to=${seg.to}, xStart=${xStart}, xEnd=${xEnd}, width=${width}`);
+
+        if (width > 10) { // 최소 너비 확인
+          // IPO별 고유 색상
+          const colorMap = {
+            "Input": "rgba(59, 130, 246, 0.15)",     // 파랑
+            "Process": "rgba(34, 197, 94, 0.15)",    // 초록
+            "Output": "rgba(249, 115, 22, 0.15)"     // 주황
+          };
+          ctx.fillStyle = colorMap[seg.name] || "rgba(156, 163, 175, 0.15)";
+          ctx.fillRect(xStart, top, width, bottom - top);
+
+          // 라벨 표시
+          ctx.fillStyle = "#374151";
+          ctx.font = "bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+          ctx.textAlign = "left";
+          ctx.fillText(seg.name, xStart + 8, top + 16);
+        }
+      });
+      ctx.restore();
+    }
+  };
+
+  // 플러그인 전역 등록
+  Chart.register(ipoBGPlugin);
+
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: bench.name || "벤치마크",
+          data: bench.data || [],
+          borderColor: "rgba(148,163,184,1)",
+          backgroundColor: "rgba(148,163,184,0.05)",
+          pointRadius: 3,
+          pointBackgroundColor: "rgba(255,255,255,1)",
+          pointBorderColor: "rgba(148,163,184,1)",
+          pointBorderWidth: 2,
+          tension: 0.35,
+          borderWidth: 1.5,
+        },
+        {
+          label: ours.name || "우리 조직",
+          data: ours.data || [],
+          borderColor: "rgba(15,79,168,1)",
+          backgroundColor: "rgba(15,79,168,0.04)",
+          pointRadius: 3,
+          pointBackgroundColor: "rgba(15,79,168,1)",
+          borderWidth: 2.5,
+          tension: 0.35,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      devicePixelRatio: 3, // PDF 품질 최대화 (2→3 향상)
+      animation: false, // PDF 렌더링 시 애니메이션 비활성화
+      font: {
+        family: "'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif"
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: "top",
+          labels: {
+            usePointStyle: true,
+            boxWidth: 4,
+            padding: 30,
+            font: { size: 8, weight: '500' },
+          },
+        },
+        tooltip: {
+          mode: "index",
+          intersect: false,
+          backgroundColor: "rgba(255,255,255,0.95)",
+          titleColor: "#1f2937",
+          bodyColor: "#374151",
+          borderColor: "rgba(209,213,219,1)",
+          borderWidth: 1,
+        },
+        ipoBGPlugin: { segments: segments }
+      },
+      scales: {
+        y: {
+          min: yMin,
+          max: yMax,
+          ticks: {
+            stepSize: 0.2,
+            font: { size: 10 },
+            color: "#6b7280",
+          },
+          grid: {
+            color: "rgba(148,163,184,0.12)",
+            drawBorder: false,
+          },
+          title: {
+            display: true,
+            text: "점수",
+            font: { size: 11 },
+            color: "#6b7280",
+          },
+        },
+        x: {
+          grid: { display: false },
+          ticks: {
+            maxRotation: 65,
+            minRotation: 40,
+            color: "rgba(71,85,105,1)",
+            font: { size: 10 },
+            autoSkip: true,
+            autoSkipPadding: 12,
+          },
+        },
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index',
+      },
+    },
+  });
+})();
+</script>
