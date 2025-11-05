@@ -421,12 +421,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 차트 ID 결정 (더 포괄적인 키워드 매칭)
   let chartId = '';
-  if (categoryName.includes('input') || categoryName.includes('투입') || categoryName.includes('전략') || categoryName.includes('구조')) {
+
+  // 카테고리 이름 정규화 (소문자 변환 및 공백/괄호 제거)
+  const normalizedName = categoryName.toLowerCase().replace(/[\s\(\)]/g, '');
+
+  if (normalizedName.includes('input') || normalizedName.includes('투입') || normalizedName.includes('전략') || normalizedName.includes('구조') || normalizedName.includes('개인') || normalizedName.includes('조직구조') || normalizedName.includes('환경')) {
     chartId = 'inputVerticalChart';
-  } else if (categoryName.includes('process') || categoryName.includes('과정') || categoryName.includes('프로세스') || categoryName.includes('리더') || categoryName.includes('협업') || categoryName.includes('의사소통')) {
+  } else if (normalizedName.includes('process') || normalizedName.includes('과정') || normalizedName.includes('프로세스') || normalizedName.includes('리더') || normalizedName.includes('협업') || normalizedName.includes('의사소통') || normalizedName.includes('skms') || normalizedName.includes('실행') || normalizedName.includes('도전') || normalizedName.includes('소통') || normalizedName.includes('팀워크')) {
     chartId = 'processVerticalChart';
-  } else if (categoryName.includes('output') || categoryName.includes('산출') || categoryName.includes('결과') || categoryName.includes('성과') || categoryName.includes('몰입') || categoryName.includes('문화')) {
+  } else if (normalizedName.includes('output') || normalizedName.includes('산출') || normalizedName.includes('결과') || normalizedName.includes('성과') || normalizedName.includes('몰입') || normalizedName.includes('문화') || normalizedName.includes('조직성과') || normalizedName.includes('구성원') || normalizedName.includes('행복')) {
     chartId = 'outputVerticalChart';
+  } else {
+    // 기본값으로 input 차트 사용
+    chartId = 'inputVerticalChart';
   }
 
   const ctx = document.getElementById(chartId);
@@ -493,39 +500,45 @@ document.addEventListener('DOMContentLoaded', function() {
     id: 'badgePlugin',
     afterDraw(chart) {
       const {ctx, scales: {x, y}} = chart;
-      const maxScore = Math.max(...chartData.map(d => d.score));
-      const minScore = Math.min(...chartData.map(d => d.score));
 
-      chartData.forEach((item, index) => {
-        if (item.score === maxScore || item.score === minScore) {
+      // 차트 인스턴스에서 데이터 가져오기
+      const datasetData = chart.data.datasets[0].data;
+      if (!datasetData || datasetData.length === 0) return;
+
+      const maxScore = Math.max(...datasetData);
+      const minScore = Math.min(...datasetData);
+
+      datasetData.forEach((score, index) => {
+        if (score === maxScore || score === minScore) {
           const xPos = x.getPixelForValue(index);
-          const yPos = y.getPixelForValue(item.score);
+          const yPos = y.getPixelForValue(score);
 
           // 뱃지 크기 설정
-          const badgeWidth = 24;
-          const badgeHeight = 12;
-          const borderRadius = 6;
+          const badgeWidth = 32;
+          const badgeHeight = 16;
+          const borderRadius = 8;
 
-          // 뱃지 배경 (둥근 모서리) - roundRect 폴백 포함
+          // 뱃지를 포인트 아래쪽에 배치 (간격 줄임)
+          const badgeY = yPos + 15;
+
+          // 뱃지 배경
           ctx.save();
-          ctx.fillStyle = item.score === maxScore ? '#DBEAFE' : '#FEE2E2'; // 파스텔 톤
+          ctx.fillStyle = score === maxScore ? '#3B82F6' : '#EF4444';
 
-          // roundRect 지원 확인 및 폴백
           if (ctx.roundRect) {
             ctx.beginPath();
-            ctx.roundRect(xPos - badgeWidth/2, yPos + 16, badgeWidth, badgeHeight, borderRadius);
+            ctx.roundRect(xPos - badgeWidth/2, badgeY, badgeWidth, badgeHeight, borderRadius);
             ctx.fill();
           } else {
-            // 폴백: 일반 사각형
-            ctx.fillRect(xPos - badgeWidth/2, yPos + 16, badgeWidth, badgeHeight);
+            ctx.fillRect(xPos - badgeWidth/2, badgeY, badgeWidth, badgeHeight);
           }
 
           // 뱃지 텍스트
-          ctx.fillStyle = item.score === maxScore ? '#3B82F6' : '#EF4444'; // 진한 색상 텍스트
-          ctx.font = 'bold 7px -apple-system, BlinkMacSystemFont, sans-serif';
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = 'bold 9px -apple-system, BlinkMacSystemFont, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(item.score === maxScore ? 'Best' : 'Worst', xPos, yPos + 22);
+          ctx.fillText(score === maxScore ? 'Best' : 'Worst', xPos, badgeY + badgeHeight/2);
           ctx.restore();
         }
       });

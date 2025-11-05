@@ -159,17 +159,22 @@ def build_structured_open_ended(df: pd.DataFrame, is_company_level: bool = False
         result = {
             "basic_responses": structured_data,
             "advanced_analysis": None,
-            "comprehensive_analysis": None
+            "ai_interpretation_summary": None  # AI 종합 해석 저장할 키
         }
 
         # AI 종합 해석은 항상 생성
         if structured_data:
             try:
                 org_name = df.get('조직명', pd.Series([None])).iloc[0] if '조직명' in df.columns else None
-                result["comprehensive_analysis"] = generate_subjective_comprehensive_analysis(result, org_name)
+                ai_summary = generate_subjective_comprehensive_analysis(result, org_name)
+                result["ai_interpretation_summary"] = ai_summary  # 올바른 키에 저장
+                print(f"DEBUG: 주관식 AI 분석 완료 - {len(ai_summary) if ai_summary else 0} 글자")
             except Exception as e:
                 print(f"AI 종합 해석 생성 중 오류: {e}")
-                result["comprehensive_analysis"] = None
+                result["ai_interpretation_summary"] = _generate_fallback_analysis(
+                    len(structured_data) if structured_data else 0,
+                    org_name if 'org_name' in locals() else None
+                )
 
         # 회사단위일 때만 고급 분석 추가
         if is_company_level and structured_data:
@@ -188,15 +193,20 @@ def build_structured_open_ended(df: pd.DataFrame, is_company_level: bool = False
                 if raw_answers:
                     processed_answers = preprocess_answer_list(raw_answers, global_used_sentences)
                     open_ended.append({"title": col, "answers": processed_answers})
-        result = {"basic_responses": open_ended, "advanced_analysis": None, "comprehensive_analysis": None}
+        result = {"basic_responses": open_ended, "advanced_analysis": None, "ai_interpretation_summary": None}
         # AI 종합 해석 생성 (fallback에서도)
         if open_ended:
             try:
                 org_name = df.get('조직명', pd.Series([None])).iloc[0] if '조직명' in df.columns else None
-                result["comprehensive_analysis"] = generate_subjective_comprehensive_analysis(result, org_name)
+                ai_summary = generate_subjective_comprehensive_analysis(result, org_name)
+                result["ai_interpretation_summary"] = ai_summary
+                print(f"DEBUG: 주관식 AI 분석 완료 (fallback) - {len(ai_summary) if ai_summary else 0} 글자")
             except Exception as e:
                 print(f"AI 종합 해석 생성 중 오류 (fallback): {e}")
-                result["comprehensive_analysis"] = None
+                result["ai_interpretation_summary"] = _generate_fallback_analysis(
+                    len(open_ended) if open_ended else 0,
+                    org_name if 'org_name' in locals() else None
+                )
         return result
 
 
@@ -313,8 +323,8 @@ def generate_subjective_comprehensive_analysis(open_ended_responses: dict, org_n
         try:
             import google.generativeai as genai
             genai.configure(api_key=GOOGLE_API_KEY)
-            # 가장 빠른 모델 사용 (품질은 약간 낮지만 속도 5배 향상)
-            client = genai.GenerativeModel('gemini-1.5-flash-8b')
+            # 안정적인 모델 사용
+            client = genai.GenerativeModel('gemini-pro')
 
             # 속도 최적화 설정 (품질 유지하면서 빠르게)
             generation_config = genai.types.GenerationConfig(
@@ -326,12 +336,9 @@ def generate_subjective_comprehensive_analysis(open_ended_responses: dict, org_n
                 stop_sequences=["\n\n\n", "---", "###"]  # 조기 종료
             )
 
-            # 타임아웃 설정으로 빠른 응답 보장 (threading 사용)
-            import concurrent.futures
-            import time
-
-            def make_api_call():
-                return client.generate_content(
+            # Streamlit에서는 threading이 제한되므로 직접 API 호출
+            try:
+                response = client.generate_content(
                     prompt,
                     generation_config=generation_config,
                     safety_settings=[
@@ -341,15 +348,9 @@ def generate_subjective_comprehensive_analysis(open_ended_responses: dict, org_n
                         {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_ONLY_HIGH"}
                     ]
                 )
-
-            # 30초 타임아웃 설정 (concurrent.futures 사용)
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(make_api_call)
-                try:
-                    response = future.result(timeout=30)
-                except concurrent.futures.TimeoutError:
-                    print("AI 분석 시간 초과 (30초) - fallback 사용")
-                    return _generate_fallback_analysis(total_responses, org_name)
+            except Exception as e:
+                print(f"Gemini API 호출 중 오류 발생: {e}")
+                return _generate_fallback_analysis(total_responses, org_name)
 
             # 응답 상태 확인
             if response and hasattr(response, 'candidates') and response.candidates:
@@ -381,9 +382,6 @@ def generate_subjective_comprehensive_analysis(open_ended_responses: dict, org_n
             print("Gemini API: 유효한 응답을 받지 못함")
             return _generate_fallback_analysis(total_responses, org_name)
 
-        except TimeoutError as timeout_error:
-            print(f"Gemini API 타임아웃: {timeout_error}")
-            return _generate_fallback_analysis(total_responses, org_name)
         except Exception as api_error:
             print(f"Gemini API 호출 오류: {api_error}")
             return f"AI 분석 생성 중 오류가 발생했습니다: {str(api_error)}"
@@ -3567,6 +3565,10 @@ def render_web_html(report: dict, ai_result: dict | None = None) -> str:
     if "summary" not in report:
         report["summary"] = {}
     report["summary"]["ai"] = cleaned_ai
+
+    # score_distribution을 root level로도 복사 (템플릿 호환성)
+    if "score_distribution" in report.get("summary", {}):
+        report["score_distribution"] = report["summary"]["score_distribution"]
 
     tmpl = env.get_template("report.html")
     html = tmpl.render(

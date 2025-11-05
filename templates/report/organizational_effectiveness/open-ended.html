@@ -1,4 +1,5 @@
 <!-- templates/report/organizational_effectiveness/open-ended.html -->
+{% set advanced = report.open_ended.advanced_analysis if report.open_ended and report.open_ended.advanced_analysis else {} %}
 <section class="w-full bg-white px-10 py-8 space-y-6" class="report-section">
   <!-- 헤더 -->
   <header class="flex items-center justify-between gap-4">
@@ -17,7 +18,7 @@
   </header>
 
   <!-- 1. AI 종합 해석 섹션 -->
-  {% if report.open_ended.comprehensive_analysis %}
+  {% if report.open_ended.ai_interpretation_summary or report.open_ended.comprehensive_analysis %}
   <section class="space-y-4">
     <div class="flex items-center justify-between">
       <h2 class="text-base font-semibold text-slate-900">AI 종합 해석</h2>
@@ -36,7 +37,7 @@
       </div>
 
       <div class="text-sm leading-relaxed text-slate-700 space-y-3">
-        <div class="whitespace-pre-line">{{ report.open_ended.comprehensive_analysis }}</div>
+        <div class="whitespace-pre-line">{{ report.open_ended.ai_interpretation_summary or report.open_ended.comprehensive_analysis }}</div>
       </div>
     </div>
   </section>

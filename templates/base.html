@@ -217,12 +217,25 @@
         overflow: visible;
       }
 
-      /* 표지 페이지 일반 화면 설정 */
+      /* 표지 페이지 일반 화면 설정 - A4 비율 유지 */
       .cover-page {
         min-height: 100vh;
         height: 100vh;
-        max-height: 100vh;
+        width: 100%;
         position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* A4 비율을 위한 내부 컨테이너 */
+      @media screen and (min-aspect-ratio: 210/297) {
+        /* 화면이 A4보다 넓을 때 */
+        .cover-page {
+          min-height: calc(100vh - 2rem);
+          height: auto;
+        }
       }
 
       /* 차트 반응형 설정 (일반 화면용) */
