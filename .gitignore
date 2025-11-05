@@ -68,6 +68,9 @@ generated_reports/
 .env.production
 .env.development
 
+# Streamlit secrets
+.streamlit/secrets.toml
+
 # Node modules (if any)
 node_modules/
 
