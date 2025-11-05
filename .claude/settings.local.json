@@ -16,7 +16,10 @@
       "Bash(git remote add:*)",
       "Bash(git branch:*)",
       "Bash(git push:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(echo $SMTP_EMAIL)",
+      "Bash(export:*)",
+      "Bash(export SMTP_PASSWORD=nvytpjpyuinpkftv)"
     ],
     "deny": [],
     "ask": []

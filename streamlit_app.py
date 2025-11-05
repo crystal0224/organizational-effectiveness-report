@@ -162,23 +162,15 @@ def build_structured_open_ended(df: pd.DataFrame, is_company_level: bool = False
             "ai_interpretation_summary": None  # AI 종합 해석 저장할 키
         }
 
-        # AI 종합 해석은 항상 생성
-        if structured_data:
-            try:
-                org_name = df.get('조직명', pd.Series([None])).iloc[0] if '조직명' in df.columns else None
-                ai_summary = generate_subjective_comprehensive_analysis(result, org_name)
-                result["ai_interpretation_summary"] = ai_summary  # 올바른 키에 저장
-                print(f"DEBUG: 주관식 AI 분석 완료 - {len(ai_summary) if ai_summary else 0} 글자")
-            except Exception as e:
-                print(f"AI 종합 해석 생성 중 오류: {e}")
-                result["ai_interpretation_summary"] = _generate_fallback_analysis(
-                    len(structured_data) if structured_data else 0,
-                    org_name if 'org_name' in locals() else None
-                )
+        # AI 종합 해석은 버튼 클릭 시에만 생성되도록 None으로 초기화
+        # 실제 생성은 AI 해석 버튼 클릭 시 generate_subjective_comprehensive_analysis 함수를 호출
+        result["ai_interpretation_summary"] = None
 
         # 회사단위일 때만 고급 분석 추가
         if is_company_level and structured_data:
-            result["advanced_analysis"] = generate_advanced_subjective_analysis(structured_data, df)
+            advanced = generate_advanced_subjective_analysis(structured_data, df)
+            result["advanced_analysis"] = advanced
+            print(f"[DEBUG] Advanced analysis generated - team_potential_mapping: {advanced.get('team_potential_mapping', {})}")
 
         return result
 
@@ -194,19 +186,8 @@ def build_structured_open_ended(df: pd.DataFrame, is_company_level: bool = False
                     processed_answers = preprocess_answer_list(raw_answers, global_used_sentences)
                     open_ended.append({"title": col, "answers": processed_answers})
         result = {"basic_responses": open_ended, "advanced_analysis": None, "ai_interpretation_summary": None}
-        # AI 종합 해석 생성 (fallback에서도)
-        if open_ended:
-            try:
-                org_name = df.get('조직명', pd.Series([None])).iloc[0] if '조직명' in df.columns else None
-                ai_summary = generate_subjective_comprehensive_analysis(result, org_name)
-                result["ai_interpretation_summary"] = ai_summary
-                print(f"DEBUG: 주관식 AI 분석 완료 (fallback) - {len(ai_summary) if ai_summary else 0} 글자")
-            except Exception as e:
-                print(f"AI 종합 해석 생성 중 오류 (fallback): {e}")
-                result["ai_interpretation_summary"] = _generate_fallback_analysis(
-                    len(open_ended) if open_ended else 0,
-                    org_name if 'org_name' in locals() else None
-                )
+        # AI 종합 해석은 버튼 클릭 시에만 생성되도록 None으로 초기화
+        result["ai_interpretation_summary"] = None
         return result
 
 
@@ -1920,8 +1901,12 @@ def group_data_by_unit(df: pd.DataFrame, group_type: str, group_column: str = No
         grouped_data = {}
 
         # 팀별로 데이터 분리
+        print(f"DEBUG: 그룹핑 컬럼 '{group_column}'의 고유 값들: {df[group_column].unique()}")
+        print(f"DEBUG: 각 팀별 응답자 수:")
         for team_name, team_df in df.groupby(group_column):
+            print(f"  - {team_name}: {len(team_df)}명")
             if len(team_df) < 3:  # 최소 응답자 수 체크 (UI에서 이미 표시됨)
+                print(f"    -> 최소 응답자 수(3명) 미달로 제외")
                 continue
             grouped_data[str(team_name)] = team_df.copy()
 
@@ -3514,6 +3499,18 @@ IPO 점수: {json.dumps(ipo, ensure_ascii=False)}
             "• index.xlsx의 대분류/헤더명이 설문 결과와 일치하는지 점검하세요."
         )
 
+    # 주관식 종합 분석 추가 생성
+    subjective_ai_summary = None
+    if open_ended and report.get("open_ended"):
+        try:
+            subjective_ai_summary = generate_subjective_comprehensive_analysis(
+                report.get("open_ended"),
+                org_name
+            )
+        except Exception as e:
+            print(f"주관식 AI 종합 분석 생성 오류: {e}")
+            subjective_ai_summary = None
+
     # AI 분석 결과 구성
     ai_analysis_result = {
         "score": _clean_ai_text(score_result),
@@ -3523,6 +3520,7 @@ IPO 점수: {json.dumps(ipo, ensure_ascii=False)}
         "writer": _clean_ai_text(writer_result),
         "reviewer": _clean_ai_text(reviewer_result),
         "final": _clean_ai_text(final_result),
+        "subjective_ai_summary": subjective_ai_summary,  # 주관식 종합 AI 분석 추가
     }
 
     # AI 분석 결과를 데이터베이스에 저장
@@ -4108,7 +4106,7 @@ def main():
                     # 데이터 그룹핑
                     grouped_data = group_data_by_unit(df, internal_report_type, group_column)
                     st.session_state["grouped_data"] = grouped_data
-                    print(f"DEBUG: 데이터 그룹핑 완료 - 그룹 수: {len(grouped_data)}")
+                    print(f"DEBUG: 데이터 그룹핑 완료 - 그룹 수: {len(grouped_data)}, 그룹 이름: {list(grouped_data.keys())}")
 
                     # 리포트 생성 (감지된 조직 정보 전달)
                     index_df = load_index()
@@ -4174,13 +4172,25 @@ def main():
         print(f"DEBUG: 리포트 미리보기 - reports 타입: {type(reports)}")
         print(f"DEBUG: 리포트 미리보기 - reports 길이: {len(reports)}")
         print(f"DEBUG: 리포트 미리보기 - reports 키들: {list(reports.keys()) if reports else 'None'}")
+
+        # 디버그 정보 표시
+        with st.expander("🔍 디버그 정보", expanded=False):
+            st.write(f"리포트 타입: {st.session_state.get('report_type', 'N/A')}")
+            st.write(f"리포트 개수: {len(reports)}")
+            st.write(f"리포트 키: {list(reports.keys()) if reports else []}")
+            st.write(f"팀 선택 드롭다운 표시 조건: len(reports) > 1 = {len(reports) > 1}")
+            if st.session_state.get("grouped_data"):
+                st.write(f"그룹 데이터 키: {list(st.session_state['grouped_data'].keys())}")
+
         if not reports:
             st.warning("먼저 첫번째 메뉴에서 리포트 설정을 완료해 주세요.")
             return
 
         # 팀 선택 UI (여러 리포트가 있는 경우)
         selected_team = None
+        print(f"DEBUG: 리포트 개수: {len(reports)}, 팀별 분석 여부: {st.session_state.get('report_type')}")
         if len(reports) > 1:
+            st.info(f"📊 팀별 분석 모드 - 총 {len(reports)}개 팀의 리포트가 생성되었습니다.")
             st.markdown("###### 조회할 리포트 선택")
 
             # 팀 목록 정렬 (가나다순)
@@ -4269,6 +4279,11 @@ def main():
                     report, progress_update=on_progress, force_regenerate=False
                 )
             st.session_state[ai_key] = ai_result
+            # AI 분석 결과를 리포트에도 반영
+            if ai_result and ai_result.get("subjective_ai_summary"):
+                if report.get("open_ended"):
+                    report["open_ended"]["ai_interpretation_summary"] = ai_result.get("subjective_ai_summary")
+                    reports[selected_team] = report  # 리포트 업데이트
             st.toast(f"'{selected_team}' AI 해석 생성 완료", icon="✅")
 
         # 개별 팀 AI 해석 재생성 (강제 재생성)
@@ -4289,6 +4304,11 @@ def main():
                     report, progress_update=on_progress, force_regenerate=True
                 )
             st.session_state[ai_key] = ai_result
+            # AI 분석 결과를 리포트에도 반영
+            if ai_result and ai_result.get("subjective_ai_summary"):
+                if report.get("open_ended"):
+                    report["open_ended"]["ai_interpretation_summary"] = ai_result.get("subjective_ai_summary")
+                    reports[selected_team] = report  # 리포트 업데이트
             st.toast(f"'{selected_team}' AI 해석 재생성 완료", icon="🔄")
 
         # 전체 팀 AI 해석 생성
@@ -4837,14 +4857,20 @@ def main():
             # 공통 메일 설정
             subject = st.text_input(
                 "메일 제목",
-                value="조직효과성 진단 리포트",
+                value="[자동발송] 조직효과성 진단 리포트 송부",
                 key="batch_email_subject"
             )
             body = st.text_area(
                 "메일 내용",
-                value="첨부된 PDF를 확인해 주세요.",
+                value="""안녕하세요. 배수정RF입니다.
+
+첨부로 조직효과성 진단 리포트를 송부드립니다.
+
+문의사항 있으시면 연락주세요.
+
+감사합니다.""",
                 key="batch_email_body",
-                height=100
+                height=150
             )
 
             # ZIP 파일 발송 옵션
@@ -4917,14 +4943,20 @@ def main():
             )
             subject = st.text_input(
                 "메일 제목",
-                value=f"{team_name} 조직효과성 진단 리포트",
+                value=f"[자동발송] {team_name} 조직효과성 진단 리포트 송부",
                 key="single_email_subject"
             )
             body = st.text_area(
                 "메일 내용",
-                value=f"{team_name} 팀의 조직효과성 진단 리포트를 첨부합니다.",
+                value=f"""안녕하세요. 배수정RF입니다.
+
+첨부로 {team_name} 팀의 조직효과성 진단 리포트를 송부드립니다.
+
+문의사항 있으시면 연락주세요.
+
+감사합니다.""",
                 key="single_email_body",
-                height=100
+                height=150
             )
 
             if st.button("📧 이메일 발송", key="single_email_send"):

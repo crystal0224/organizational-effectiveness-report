@@ -499,14 +499,17 @@
 
   <!-- 팀별 잠재유형 분석 결과 -->
   {% set has_teams = false %}
-  {% for team_name, analysis in advanced.team_potential_mapping.items() %}
-    {% if team_name != 'message' and (analysis.size is not defined or analysis.size >= 1) %}
-      {% set has_teams = true %}
-    {% endif %}
-  {% endfor %}
+  {% if advanced.team_potential_mapping %}
+    {% for team_name, analysis in advanced.team_potential_mapping.items() %}
+      {% if team_name != 'message' and analysis and (analysis.size is not defined or analysis.size >= 1) %}
+        {% set has_teams = true %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
 
-  {% if has_teams %}
-  <section class="space-y-4">
+
+  {% if has_teams or (advanced and advanced.team_potential_mapping) %}
+  <section class="space-y-4 mt-8">
     <div class="flex items-center justify-between">
       <h2 class="text-base font-semibold text-slate-900">팀별 잠재유형 매핑</h2>
       <p class="text-[0.6rem] text-slate-400">Team Analysis</p>
@@ -516,41 +519,44 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {% for team_name, analysis in advanced.team_potential_mapping.items() %}
       {% if team_name != 'message' and (analysis.size is not defined or analysis.size >= 1) %}
-      <div class="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+      <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-4">
-          <h4 class="text-sm font-medium text-slate-900">{{ team_name }}</h4>
-          <span class="text-xs text-slate-500 bg-slate-100 rounded-full px-2 py-1">{{ analysis.size }}명</span>
+          <h4 class="text-sm font-semibold text-slate-900">{{ team_name }}</h4>
+          <span class="text-xs text-slate-600 bg-white border border-slate-200 rounded-full px-3 py-1">{{ analysis.size }}명</span>
         </div>
 
-        <div class="space-y-4">
+        <div class="space-y-3">
+          <!-- 잠재유형 표시 -->
           <div class="flex items-center justify-between">
-            <span class="text-sm text-slate-600">잠재유형</span>
-            <span class="px-3 py-1 text-sm rounded-full font-medium
-              {% if '혁신' in analysis.potential_type %}bg-green-100 text-green-700
-              {% elif '성장' in analysis.potential_type %}bg-blue-100 text-blue-700
-              {% elif '안정' in analysis.potential_type %}bg-yellow-100 text-yellow-700
-              {% else %}bg-red-100 text-red-700{% endif %}">
+            <span class="text-xs text-slate-600 font-medium">잠재유형</span>
+            <span class="px-3 py-1 text-xs rounded-full font-semibold
+              {% if '혁신' in analysis.potential_type %}bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200
+              {% elif '성장' in analysis.potential_type %}bg-gradient-to-r from-blue-100 to-sky-100 text-blue-800 border border-blue-200
+              {% elif '안정' in analysis.potential_type %}bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border border-yellow-200
+              {% else %}bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200{% endif %}">
               {{ analysis.potential_type }}
             </span>
           </div>
 
-          <div class="text-sm text-slate-600 bg-slate-50 rounded-lg px-4 py-3">
-            <span class="font-medium text-slate-700">주요특성:</span><br>
-            {{ analysis.dominant_trait }}
+          <!-- 주요 특성 -->
+          <div class="bg-white rounded-lg border border-slate-200 px-4 py-3">
+            <p class="text-xs font-semibold text-slate-700 mb-1">주요특성</p>
+            <p class="text-xs text-slate-600 leading-relaxed">{{ analysis.dominant_trait }}</p>
           </div>
 
+          <!-- 발전 방향 -->
           <div>
-            <h5 class="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
-              <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h5 class="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
               </svg>
               발전 방향
             </h5>
-            <ul class="space-y-2">
+            <ul class="space-y-1.5">
               {% for suggestion in analysis.development_suggestions %}
-              <li class="text-xs text-slate-600 flex items-start gap-3 bg-purple-50 rounded-lg px-3 py-2">
-                <span class="mt-1 h-2 w-2 rounded-full bg-purple-400 flex-shrink-0"></span>
-                <span>{{ suggestion }}</span>
+              <li class="text-xs text-slate-600 flex items-start gap-2 bg-gradient-to-r from-indigo-50 to-white rounded-lg px-3 py-2 border border-indigo-100">
+                <span class="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-500 flex-shrink-0"></span>
+                <span class="leading-relaxed">{{ suggestion }}</span>
               </li>
               {% endfor %}
             </ul>
@@ -559,6 +565,29 @@
       </div>
       {% endif %}
       {% endfor %}
+    </div>
+  </section>
+  {% else %}
+  <!-- 팀별 분석 결과가 없는 경우 -->
+  <section class="space-y-4 mt-8">
+    <div class="flex items-center justify-between">
+      <h2 class="text-base font-semibold text-slate-900">팀별 잠재유형 매핑</h2>
+      <p class="text-[0.6rem] text-slate-400">Team Analysis</p>
+    </div>
+    <div class="h-px w-full bg-slate-200"></div>
+
+    <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-8 text-center">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 mb-4">
+        <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+      </div>
+      <p class="text-sm font-medium text-slate-700 mb-2">팀별 분석 데이터 부족</p>
+      <p class="text-xs text-slate-500 leading-relaxed">
+        팀별 분석을 위한 충분한 데이터가 없습니다.<br>
+        각 팀당 최소 3명 이상의 응답자가 필요하며,<br>
+        회사 단위 리포트에서만 제공됩니다.
+      </p>
     </div>
   </section>
   {% endif %}
