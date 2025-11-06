@@ -19,7 +19,16 @@
       "Bash(git fetch:*)",
       "Bash(echo $SMTP_EMAIL)",
       "Bash(export:*)",
-      "Bash(export SMTP_PASSWORD=nvytpjpyuinpkftv)"
+      "Bash(export SMTP_PASSWORD=nvytpjpyuinpkftv)",
+      "Read(//Users/crystal/Desktop/work-redesign-platform/**)",
+      "Bash(gh repo create:*)",
+      "Bash(brew install:*)",
+      "Bash(gh auth:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(npm run setup:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
